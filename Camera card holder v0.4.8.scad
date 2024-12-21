@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.8
+
+- Change the axle holder to only have extra print clearance on the supported side.
+
 ## v0.4.7
 
 - Change the spring compression to be even lighter.
@@ -314,12 +318,11 @@ module ejector_lever_comp(card_size)
                 {
                     aligned_cube(
                         [
-                            EJECTOR_AXLE_RADIUS * 2 * 2 / 3,
-                            EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2,
+                            EJECTOR_AXLE_RADIUS * 2 * 2 / 3, EJECTOR_AXLE_RADIUS + CLEARANCE + EJECTOR_AXLE_CLEARANCE,
                             _z(card_size) + 2 * CASE_MARGIN_Z + 2 *
                             _EPSILON
                         ],
-                        centering_spec = "...");
+                        centering_spec = ".+.");
                 }
             }
 
