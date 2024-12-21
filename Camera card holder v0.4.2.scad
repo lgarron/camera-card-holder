@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.2
+
+- Swap to a single axle print support.
+
 ## v0.4.1
 
 - Increase the wall thickness between the card and the ejector plunger, for more subtle leverage and a larger available
@@ -132,7 +136,7 @@ module casing(card_size)
 }
 
 EJECTOR_AXLE_RADIUS = 2;
-EJECTOR_AXLE_CLEARANCE = 0.2;
+EJECTOR_AXLE_CLEARANCE = 0.25;
 
 // We don't include `y` clearance, since that ensures a snug state when the card is in, and the lever is not
 // touching near the spring while printed.
@@ -207,18 +211,17 @@ EJECTOR_LEVER_PRINTING_ANGLE = PLUNGER_PUSHED_IN ? 40 : 0;
 
 EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT = CASE_MARGIN_Z * 1 / 2;
 
-module ejector_axle_hole_snap_supports(card_size)
+module ejector_axle_hole_snappable_print_supports(card_size)
 {
-    duplicate_and_mirror([ 0, 0, 1 ]) duplicate_and_mirror()
-        translate([ EJECTOR_AXLE_RADIUS * 1 / 4, 0, _z(card_size) / 2 + CASE_MARGIN_Z / 2 ]) aligned_cube(
-            [
-                EJECTOR_AXLE_RADIUS * 1 / 4,
-                EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2 + 2 * _EPSILON,
-                EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT
-                // _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON + 2 *
-                // _EPSILON
-            ],
-            centering_spec = "...");
+    duplicate_and_mirror([ 0, 0, 1 ]) translate([ 0, 0, _z(card_size) / 2 + CASE_MARGIN_Z / 2 ]) aligned_cube(
+        [
+            EJECTOR_AXLE_RADIUS * 1 / 4,
+            EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2 + 2 * _EPSILON,
+            EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT
+            // _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON + 2 *
+            // _EPSILON
+        ],
+        centering_spec = "...");
 }
 
 module ejector_lever_comp(card_size)
@@ -265,7 +268,7 @@ module ejector_lever_comp(card_size)
                 }
             }
 
-            ejector_axle_hole_snap_supports(card_size);
+            ejector_axle_hole_snappable_print_supports(card_size);
         }
 
         // Axle
