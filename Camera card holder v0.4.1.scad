@@ -19,7 +19,7 @@ $fn = 180;
 front surface that can be turned into a button.
   - Increase ejector plunger depth to compensate.
 - Add a bigger ejector button.
-- TODO: snappable axle hole supports
+- Add snappable axle supports for printing.
 
 ## v0.4.0
 
@@ -205,6 +205,22 @@ module card_slot_comp(card_size)
 EJECTOR_LEVER_WIDTH = EJECTOR_AXLE_RADIUS * 2;
 EJECTOR_LEVER_PRINTING_ANGLE = PLUNGER_PUSHED_IN ? 40 : 0;
 
+EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT = CASE_MARGIN_Z * 1 / 2;
+
+module ejector_axle_hole_snap_supports(card_size)
+{
+    duplicate_and_mirror([ 0, 0, 1 ]) duplicate_and_mirror()
+        translate([ EJECTOR_AXLE_RADIUS * 1 / 4, 0, _z(card_size) / 2 + CASE_MARGIN_Z / 2 ]) aligned_cube(
+            [
+                EJECTOR_AXLE_RADIUS * 1 / 4,
+                EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2 + 2 * _EPSILON,
+                EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT
+                // _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON + 2 *
+                // _EPSILON
+            ],
+            centering_spec = "...");
+}
+
 module ejector_lever_comp(card_size)
 {
     // Ejector back area
@@ -226,23 +242,46 @@ module ejector_lever_comp(card_size)
             ],
             "++.");
 
-    // Ejector axle hole
-    negative() translate(ejector_axle_center(card_size))
-        cylinder(h = _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON, r = EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_CLEARANCE,
-                 center = true);
-
-    positive() color("blue") translate(ejector_axle_center(card_size)) rotate([ 0, 0, EJECTOR_LEVER_PRINTING_ANGLE ])
-        translate([ SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE, 0, 0 ]) difference()
+    translate(ejector_axle_center(card_size))
     {
-        aligned_cube(_x_z_(card_size) + [ 0, EJECTOR_LEVER_WIDTH, 0 ], "-..");
+        // Ejector axle hole
+        negative() difference()
+        {
+            union()
+            {
 
-        translate(-_x_(card_size, 1 / 2)) duplicate_and_mirror([ 0, 1, 0 ]) duplicate_and_mirror()
-            translate(_x_(card_size, -1 / 2) + [ 0, -EJECTOR_LEVER_WIDTH / 2, 0 ]) round_bevel_complement(
-                height = _z(card_size) + 2 * _EPSILON, radius = EJECTOR_LEVER_WIDTH / 2, center_z = true);
+                cylinder(h = _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON,
+                         r = EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_CLEARANCE, center = true);
+
+                {
+                    aligned_cube(
+                        [
+                            EJECTOR_AXLE_RADIUS * 2 * 2 / 3,
+                            EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2,
+                            _z(card_size) + 2 * CASE_MARGIN_Z + 2 *
+                            _EPSILON
+                        ],
+                        centering_spec = "...");
+                }
+            }
+
+            ejector_axle_hole_snap_supports(card_size);
+        }
+
+        // Axle
+        positive() cylinder(h = _z(card_size) + 2 * CASE_MARGIN_Z, r = EJECTOR_AXLE_RADIUS, center = true);
+
+        // Lever
+        positive() color("blue") rotate([ 0, 0, EJECTOR_LEVER_PRINTING_ANGLE ])
+            translate([ SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE, 0, 0 ]) difference()
+        {
+            aligned_cube(_x_z_(card_size) + [ 0, EJECTOR_LEVER_WIDTH, 0 ], "-..");
+
+            translate(-_x_(card_size, 1 / 2)) duplicate_and_mirror([ 0, 1, 0 ]) duplicate_and_mirror()
+                translate(_x_(card_size, -1 / 2) + [ 0, -EJECTOR_LEVER_WIDTH / 2, 0 ]) round_bevel_complement(
+                    height = _z(card_size) + 2 * _EPSILON, radius = EJECTOR_LEVER_WIDTH / 2, center_z = true);
+        }
     }
-
-    positive() translate(ejector_axle_center(card_size))
-        cylinder(h = _z(card_size) + 2 * CASE_MARGIN_Z, r = EJECTOR_AXLE_RADIUS, center = true);
 }
 
 // Depends on other constants, but is much easier to hardcode than computer.
