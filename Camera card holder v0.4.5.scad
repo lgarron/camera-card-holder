@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.5
+
+- Use two half-sized springs on each side instead of a single one.
+
 ## v0.4.4
 
 - Fix the plunger front button width.
@@ -193,7 +197,7 @@ SPRING_THICKNESS = 0.75;
 
 SPRING_INSET = 0.1;
 
-function spring_depth(card_size) = _y(card_size) + STICK_OUT_MARGIN_Z;
+function spring_depth(card_size) = (_y(card_size) + STICK_OUT_MARGIN_Z) / 2;
 
 module spring_shell(card_size)
 {
@@ -202,9 +206,10 @@ module spring_shell(card_size)
 
 module springs_comp(card_size)
 {
-    positive() color("orange") duplicate_and_mirror() translate(
-        [ _x(card_size, 1 / 2) + SPRING_WIDTH, spring_depth(card_size) / 2, _z(card_size, -1 / 2) + SPRING_CLEARANCE ])
-        linear_extrude(_z(card_size) - 2 * SPRING_CLEARANCE) difference()
+    positive() color("orange") duplicate_and_mirror() duplicate_and_translate([ 0, spring_depth(card_size), 0 ])
+        translate([
+            _x(card_size, 1 / 2) + SPRING_WIDTH, spring_depth(card_size) / 2, _z(card_size, -1 / 2) + SPRING_CLEARANCE
+        ]) linear_extrude(_z(card_size) - 2 * SPRING_CLEARANCE) difference()
     {
         spring_shell(card_size);
         offset(-SPRING_THICKNESS) spring_shell(card_size);
