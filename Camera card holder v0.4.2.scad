@@ -17,6 +17,7 @@ $fn = 180;
 
 - Swap to a single axle print support.
 - Reduce `EJECTOR_PLUNGER_WALL_CLEARANCE` to 0.3.
+- Adjust how close ejector plunger and lever distance are at printing time.
 
 ## v0.4.1
 
@@ -289,7 +290,7 @@ module ejector_lever_comp(card_size)
 }
 
 // Depends on other constants, but is much easier to hardcode than computer.
-EJECTOR_PLUNGER_EXTRA_DEPTH = 5.05;
+EJECTOR_PLUNGER_EXTRA_DEPTH = 4.9;
 PLUNGER_LEVER_CONTACT_ANTI_CLEARANCE = 0;
 
 EJECTOR_PLUNGER_WALL_CLEARANCE = 0.35;
