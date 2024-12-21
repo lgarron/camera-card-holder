@@ -115,7 +115,7 @@ EXTRA_INTERNAL_DEPTH_FOR_EJECTOR = 7.3;
 EJECTOR_CHUTE_WIDTH_X = 4;
 WALL_WIDTH_FOR_EJECTOR_CHUTE = 3;
 EJECTOR_RETAINERS_TOTAL_HEIGHT = 2; // Top and bottom accoutn for half each.
-LEVER_BACK_EXTRA_DEPTH = 1.15;
+LEVER_BACK_EXTRA_DEPTH = 1.35;
 
 TOTAL_EXTRA_WIDTH_FOR_EJECTOR = WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_CHUTE_WIDTH_X;
 
@@ -290,7 +290,7 @@ module ejector_lever_comp(card_size)
             }
             difference()
             {
-                scale([ 2.7, 2.55, 1 ]) cylinder(h = _z(card_size), r = EJECTOR_LEVER_WIDTH / 2, center = true);
+                scale([ 2.6, 2.45, 1 ]) cylinder(h = _z(card_size), r = EJECTOR_LEVER_WIDTH / 2, center = true);
                 aligned_cube([ LARGE_VALUE, LARGE_VALUE, LARGE_VALUE ], ".-.");
             }
         }
@@ -298,7 +298,7 @@ module ejector_lever_comp(card_size)
 }
 
 // Depends on other constants, but is much easier to hardcode than computer.
-EJECTOR_PLUNGER_EXTRA_DEPTH = 4.9;
+EJECTOR_PLUNGER_EXTRA_DEPTH = 4.8;
 PLUNGER_LEVER_CONTACT_ANTI_CLEARANCE = 0;
 
 EJECTOR_PLUNGER_WALL_CLEARANCE = 0.35;
