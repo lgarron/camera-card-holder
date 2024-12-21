@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.3
+
+- Remove one of the axle snap connectors.
+
 ## v0.4.2
 
 - Swap to a single axle print support.
@@ -220,12 +224,12 @@ module ejector_axle_hole_snappable_print_supports(card_size)
     duplicate_and_mirror([ 0, 0, 1 ]) translate([ 0, 0, _z(card_size) / 2 + CASE_MARGIN_Z / 2 ]) aligned_cube(
         [
             EJECTOR_AXLE_RADIUS * 1 / 4,
-            EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2 + 2 * _EPSILON,
+            (EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2 + 2 * _EPSILON) / 2,
             EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT
             // _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON + 2 *
             // _EPSILON
         ],
-        centering_spec = "...");
+        centering_spec = ".+.");
 }
 
 LEVER_PRINT_SUPPORT_WIDTH = 0.5;
