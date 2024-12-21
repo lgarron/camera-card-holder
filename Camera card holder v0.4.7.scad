@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.7
+
+- Change the spring compression to be even lighter.
+
 ## v0.4.6
 
 - Change the spring compression to be lighter.
@@ -223,8 +227,8 @@ module spring_pair(card_size, compression)
 
 module springs_comp(card_size)
 {
-    duplicate_and_translate([ 0, spring_depth(card_size), 0 ]) spring_pair(card_size, 0.25);
-    spring_pair(card_size, 0.5);
+    duplicate_and_translate([ 0, spring_depth(card_size), 0 ]) spring_pair(card_size, 0);
+    spring_pair(card_size, 0.25);
 }
 
 CARD_TAB_WIDTH = 11; // rounded up
