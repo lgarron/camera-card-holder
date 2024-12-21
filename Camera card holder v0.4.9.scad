@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.9
+
+- Adjust the axle inset further to accommodate double-wall slicing.
+
 ## v0.4.8
 
 - Change the axle holder to only have extra print clearance on the supported side.
@@ -169,7 +173,7 @@ module casing(card_size)
 }
 
 EJECTOR_AXLE_RADIUS = 2;
-EJECTOR_AXLE_CLEARANCE = 0.25;
+EJECTOR_AXLE_CLEARANCE = 0.15;
 
 // We don't include `y` clearance, since that ensures a snug state when the card is in, and the lever is not
 // touching near the spring while printed.
@@ -258,8 +262,8 @@ EJECTOR_LEVER_PRINTING_ANGLE = PLUNGER_PUSHED_IN ? 30 : 0;
 
 EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT = CASE_MARGIN_Z * 1 / 2;
 
-AXLE_INSET = 0.5;
-AXLE_INSET_CLEARANCE = 0.25;
+AXLE_INSET = 0.7;
+AXLE_INSET_CLEARANCE = 0.6;
 
 module ejector_axle_hole_snappable_print_supports(card_size)
 {
