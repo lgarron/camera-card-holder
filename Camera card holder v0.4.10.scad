@@ -16,6 +16,7 @@ $fn = 180;
 ## v0.4.10
 
 - Decrease text engraving depth.
+- Change the spring compression to be even lighter (again).
 
 ## v0.4.9
 
@@ -241,8 +242,8 @@ module spring_pair(card_size, compression)
 
 module springs_comp(card_size)
 {
-    duplicate_and_translate([ 0, spring_depth(card_size), 0 ]) spring_pair(card_size, 0);
-    spring_pair(card_size, 0.25);
+    duplicate_and_translate([ 0, spring_depth(card_size), 0 ]) spring_pair(card_size, -0.1);
+    spring_pair(card_size, 0.05);
 }
 
 CARD_TAB_WIDTH = 11; // rounded up
