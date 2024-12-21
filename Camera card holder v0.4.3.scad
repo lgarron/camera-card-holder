@@ -16,6 +16,7 @@ $fn = 180;
 ## v0.4.3
 
 - Remove one of the axle snap connectors.
+- Change the lever to be thicker throughout more of its length.
 
 ## v0.4.2
 
@@ -307,10 +308,9 @@ module ejector_lever_comp(card_size)
                     translate(_x_(card_size, -1 / 2) + [ 0, -EJECTOR_LEVER_WIDTH / 2, 0 ]) round_bevel_complement(
                         height = _z(card_size) + 2 * _EPSILON, radius = EJECTOR_LEVER_WIDTH / 2, center_z = true);
             }
-            difference()
+            translate([ -8, 0, 0 ]) difference()
             {
-                scale([ 2.6, 2.45, 1 ]) cylinder(h = _z(card_size), r = EJECTOR_LEVER_WIDTH / 2, center = true);
-                aligned_cube([ LARGE_VALUE, LARGE_VALUE, LARGE_VALUE ], ".-.");
+                aligned_cube([ 22, 4, _z(card_size) ], ".+.");
             }
         }
     }
