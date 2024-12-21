@@ -16,6 +16,7 @@ $fn = 180;
 ## v0.4.5
 
 - Use two half-sized springs on each side instead of a single one.
+- Carve space for the card tab to enable the card to sit flush in front.
 
 ## v0.4.4
 
@@ -217,10 +218,18 @@ module springs_comp(card_size)
     }
 }
 
+CARD_TAB_WIDTH = 11; // rounded up
+CARD_TAB_HEIGHT = 1; // approximate
+CARD_TAB_DEPTH = 1;  // approximate
+
 module card_slot_comp(card_size)
 {
     negative() translate([ 0, STICK_OUT_MARGIN_Z, 0 ])
         aligned_cube(card_size + [ 2 * SPRING_WIDTH, EXTRA_INTERNAL_DEPTH_FOR_EJECTOR, 2 * CLEARANCE ], ".+.");
+
+    // TODO: implement angled sides?
+    negative() translate([ 0, 0, -_z(card_size, 1 / 2) ])
+        aligned_cube([ CARD_TAB_WIDTH, CARD_TAB_HEIGHT, CARD_TAB_DEPTH ], ".+-");
 
     positive() % translate([ 0, STICK_OUT_MARGIN_Z, 0 ]) aligned_cube(card_size, ".+.");
 }
