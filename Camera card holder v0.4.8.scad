@@ -17,6 +17,7 @@ $fn = 180;
 
 - Change the axle holder to only have extra print clearance on the supported side.
 - Inset the axle for a flush casing.
+- Lengthen the lever to require less leverage.
 
 ## v0.4.7
 
@@ -172,7 +173,7 @@ EJECTOR_AXLE_CLEARANCE = 0.25;
 
 // We don't include `y` clearance, since that ensures a snug state when the card is in, and the lever is not
 // touching near the spring while printed.
-function ejector_axle_center(card_size) = _x_y_(card_size, [ 1 / 2, 1, 0 ]) +
+function ejector_axle_center(card_size) = _x_y_(card_size, [ 0.4, 1, 0 ]) +
                                           [ 0, STICK_OUT_MARGIN_Z + EJECTOR_AXLE_RADIUS, 0 ];
 
 module funnel_comp(card_size)
@@ -253,7 +254,7 @@ module card_slot_comp(card_size)
 }
 
 EJECTOR_LEVER_WIDTH = EJECTOR_AXLE_RADIUS * 2;
-EJECTOR_LEVER_PRINTING_ANGLE = PLUNGER_PUSHED_IN ? 40 : 0;
+EJECTOR_LEVER_PRINTING_ANGLE = PLUNGER_PUSHED_IN ? 30 : 0;
 
 EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT = CASE_MARGIN_Z * 1 / 2;
 
@@ -277,6 +278,12 @@ module ejector_axle_hole_snappable_print_supports(card_size)
 LEVER_PRINT_SUPPORT_WIDTH = 0.5;
 LEVER_PRINT_SUPPORT_HEIGHT = 2;
 
+LEVER_SCALE = 1.25;
+LEVER_OFFSET = 2;
+
+EJECTOR_LEVER_ANGLING_SPACE_EXTRA_WIDTH = 2.1;
+EJECTOR_BOTTOM_SUPPORT_OFFSET_X = 4.6;
+
 module ejector_lever_comp(card_size)
 {
     // Ejector back area
@@ -289,24 +296,28 @@ module ejector_lever_comp(card_size)
             "++.");
 
     // Ejector lever angling space
-    negative() translate([ _x(card_size, 1 / 2), _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR - _EPSILON, 0 ])
+    negative() translate([
+        _x(card_size, 1 / 2) - EJECTOR_LEVER_ANGLING_SPACE_EXTRA_WIDTH,
+        _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR - _EPSILON, 0
+    ])
         aligned_cube(
             [
-                EJECTOR_CHUTE_WIDTH_X + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE, LEVER_BACK_EXTRA_DEPTH + _EPSILON,
-                _z(card_size) + 2 *
+                EJECTOR_CHUTE_WIDTH_X + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE +
+                    EJECTOR_LEVER_ANGLING_SPACE_EXTRA_WIDTH,
+                LEVER_BACK_EXTRA_DEPTH + _EPSILON, _z(card_size) + 2 *
                 CLEARANCE
             ],
             "++.");
 
     // Small printing connectors
     positive() translate([
-        _x(card_size, 1 / 2) - LEVER_PRINT_SUPPORT_WIDTH,
+        _x(card_size, 1 / 2) - LEVER_PRINT_SUPPORT_WIDTH - EJECTOR_LEVER_ANGLING_SPACE_EXTRA_WIDTH,
         _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR - _EPSILON - 0.5 + 0.2, 0
     ]) aligned_cube([ LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_HEIGHT ], "++.");
 
     positive() translate([
-        _x(card_size, 1 / 2) - CLEARANCE + 5.3, _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR - _EPSILON - 0.5 + 1.6,
-        0
+        _x(card_size, 1 / 2) - CLEARANCE + EJECTOR_BOTTOM_SUPPORT_OFFSET_X,
+        _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR - _EPSILON - 0.5 + 1.6, 0
     ]) aligned_cube([ LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_HEIGHT ], "++.");
 
     translate(ejector_axle_center(card_size))
@@ -341,13 +352,14 @@ module ejector_lever_comp(card_size)
         // Lever
         positive() color("blue") rotate([ 0, 0, EJECTOR_LEVER_PRINTING_ANGLE ])
         {
-            translate([ SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE, 0, 0 ]) difference()
+            translate([ SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE + LEVER_OFFSET, 0, 0 ]) difference()
             {
-                aligned_cube(_x_z_(card_size) + [ 0, EJECTOR_LEVER_WIDTH, 0 ], "-..");
+                aligned_cube(_x_(card_size, LEVER_SCALE) + _z_(card_size) + [ 0, EJECTOR_LEVER_WIDTH, 0 ], "-..");
 
-                translate(-_x_(card_size, 1 / 2)) duplicate_and_mirror([ 0, 1, 0 ]) duplicate_and_mirror()
-                    translate(_x_(card_size, -1 / 2) + [ 0, -EJECTOR_LEVER_WIDTH / 2, 0 ]) round_bevel_complement(
-                        height = _z(card_size) + 2 * _EPSILON, radius = EJECTOR_LEVER_WIDTH / 2, center_z = true);
+                translate(-_x_(card_size, LEVER_SCALE / 2)) duplicate_and_mirror([ 0, 1, 0 ]) duplicate_and_mirror()
+                    translate(_x_(card_size, -LEVER_SCALE / 2) + [ 0, -EJECTOR_LEVER_WIDTH / 2, 0 ])
+                        round_bevel_complement(height = _z(card_size) + 2 * _EPSILON, radius = EJECTOR_LEVER_WIDTH / 2,
+                                               center_z = true);
             }
             translate([ -8, 0, 0 ]) difference()
             {
@@ -358,7 +370,7 @@ module ejector_lever_comp(card_size)
 }
 
 // Depends on other constants, but is much easier to hardcode than computer.
-EJECTOR_PLUNGER_EXTRA_DEPTH = 4.8;
+EJECTOR_PLUNGER_EXTRA_DEPTH = 5.25;
 PLUNGER_LEVER_CONTACT_ANTI_CLEARANCE = 0;
 
 EJECTOR_PLUNGER_WALL_CLEARANCE = 0.25;
