@@ -45,7 +45,7 @@ $fn = 180;
 - Increase the wall thickness between the card and the ejector plunger, for more subtle leverage and a larger available
 front surface that can be turned into a button.
   - Increase ejector plunger depth to compensate.
-- Add a bigger ejector button.o
+- Add a bigger ejector button.
 - Add snappable axle supports for printing.
 
 ## v0.4.0
