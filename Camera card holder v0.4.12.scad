@@ -1,7 +1,7 @@
 VERSION_TEXT = "v0.4.12";
 
 DEBUG = false;
-NUM_SLOTS = DEBUG ? 1 : 1;
+NUM_SLOTS = /* DEBUG ? 1 : */ 4;
 DEBUG_SHOW_CROSS_SECTION = DEBUG;
 ROTATE_FOR_PRINTING = !DEBUG;
 
@@ -12,6 +12,11 @@ STICK_OUT_MARGIN_Z = 0;
 $fn = 180;
 
 /*
+
+## v0.4.12
+
+- Implement stacking.
+- Set the design to 4 slots.
 
 ## v0.4.11
 
@@ -164,7 +169,9 @@ LEVER_BACK_EXTRA_DEPTH = 0;
 
 TOTAL_EXTRA_WIDTH_FOR_EJECTOR = WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_CHUTE_WIDTH_X;
 
-function slot_bottom_distance_z(card_size) = _z(card_size) + CASE_MARGIN_Z;
+function slot_bottom_distance_z(card_size) = _z(card_size) + CASE_MARGIN_Z + CLEARANCE;
+function slot_width_distance_x(card_size) = _x(card_size) + 2 * SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE
+                                            + EJECTOR_CHUTE_WIDTH_X + CASE_MARGIN_Z;
 
 module casing(card_size)
 {
@@ -256,14 +263,20 @@ CARD_TAB_WIDTH = 11; // rounded up
 CARD_TAB_HEIGHT = 1; // approximate
 CARD_TAB_DEPTH = 1;  // approximate
 
+module card_tab_negative_comp(card_size)
+{
+
+    // TODO: implement angled sides?
+    negative() translate([ 0, 0, -_z(card_size, 1 / 2) ])
+        aligned_cube([ CARD_TAB_WIDTH, CARD_TAB_HEIGHT, CARD_TAB_DEPTH ], ".+-");
+}
+
 module card_slot_comp(card_size)
 {
     negative() translate([ 0, STICK_OUT_MARGIN_Z, 0 ])
         aligned_cube(card_size + [ 2 * SPRING_WIDTH, EXTRA_INTERNAL_DEPTH_FOR_EJECTOR, 2 * CLEARANCE ], ".+.");
 
-    // TODO: implement angled sides?
-    negative() translate([ 0, 0, -_z(card_size, 1 / 2) ])
-        aligned_cube([ CARD_TAB_WIDTH, CARD_TAB_HEIGHT, CARD_TAB_DEPTH ], ".+-");
+    card_tab_negative_comp(card_size);
 
     positive() % translate([ 0, STICK_OUT_MARGIN_Z, 0 ]) aligned_cube(card_size, ".+.");
 }
@@ -298,6 +311,27 @@ LEVER_OFFSET = 2;
 
 EJECTOR_LEVER_ANGLING_SPACE_EXTRA_WIDTH = 2.9;
 EJECTOR_BOTTOM_SUPPORT_OFFSET_X = 5.4;
+
+module untranslated_axle_hole(card_size)
+{
+
+    union()
+    {
+
+        cylinder(h = _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
+                 r = EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_CLEARANCE, center = true);
+
+        {
+            aligned_cube(
+                [
+                    EJECTOR_AXLE_RADIUS * 2 * 2 / 3, EJECTOR_AXLE_RADIUS + CLEARANCE + EJECTOR_AXLE_CLEARANCE,
+                    _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 *
+                    AXLE_INSET_CLEARANCE
+                ],
+                centering_spec = ".+.");
+        }
+    }
+}
 
 module ejector_lever_comp(card_size)
 {
@@ -344,22 +378,7 @@ module ejector_lever_comp(card_size)
         // Ejector axle hole
         negative() difference()
         {
-            union()
-            {
-
-                cylinder(h = _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
-                         r = EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_CLEARANCE, center = true);
-
-                {
-                    aligned_cube(
-                        [
-                            EJECTOR_AXLE_RADIUS * 2 * 2 / 3, EJECTOR_AXLE_RADIUS + CLEARANCE + EJECTOR_AXLE_CLEARANCE,
-                            _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 *
-                            AXLE_INSET_CLEARANCE
-                        ],
-                        centering_spec = ".+.");
-                }
-            }
+            untranslated_axle_hole(card_size);
 
             ejector_axle_hole_snappable_print_supports(card_size);
         }
@@ -534,43 +553,84 @@ module ejector_comp(card_size)
     ejector_plunger_comp(card_size);
 }
 
-module block(card_size, engrave)
+ARRAY_CENTERING_OFFSET_X = -(WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_CHUTE_WIDTH_X) / 2;
+
+module conditional_mirror(condition, v)
+{
+    if (condition)
+    {
+        mirror(v) children();
+    }
+    else
+    {
+        children();
+    }
+}
+
+module block(card_size, mirror_x, is_top, engrave)
 {
     compose()
     {
-        carvable() casing(card_size);
+        conditional_mirror(mirror_x, [ 1, 0, 0 ])
+        {
+            translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ])
+            {
+                carvable() casing(card_size);
 
-        card_slot_comp(card_size);
-        ejector_comp(card_size);
-        springs_comp(card_size);
+                card_slot_comp(card_size);
+                ejector_comp(card_size);
+                springs_comp(card_size);
+
+                if (DEBUG_SHOW_CROSS_SECTION)
+                {
+                    negative() translate([ 0, 0, LARGE_VALUE / 2 ]) cube(LARGE_VALUE, center = true);
+                    // translate(ejector_axle_center(card_size)) negative() translate([ LARGE_VALUE / 2, 0, 0 ])
+                    //     cube(LARGE_VALUE, center = true);
+                }
+            }
+
+            if (!is_top)
+            {
+                negative() mirror([ 1, 0, 0 ]) translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ]) translate([ 0, 0, 2 ])
+                    translate(ejector_axle_center(card_size)) untranslated_axle_hole(card_size);
+            }
+        }
+
+        if (!is_top)
+        {
+            conditional_mirror(mirror_x, [ 1, 0, 0 ]) translate([ -ARRAY_CENTERING_OFFSET_X, 0, 0 ])
+                translate([ 0, 0, slot_bottom_distance_z(card_size) ]) card_tab_negative_comp(card_size);
+        }
 
         if (engrave)
         {
             engraving_comp(card_size);
         }
-
-        if (DEBUG_SHOW_CROSS_SECTION)
-        {
-            negative() translate([ 0, 0, LARGE_VALUE / 2 ]) cube(LARGE_VALUE, center = true);
-        }
     }
 }
 
-EXTRA_SLOT_DISTANCE = 1;
+EXTRA_SLOT_DISTANCE = 0;
 
-module block_array(n, card_size)
+module block_array(n, card_size, include_engraving = true, use_tiling_offset = false)
 {
     render() union()
     {
         for (i = [0:NUM_SLOTS - 1])
         {
-            translate([ 0, 0, i * (slot_bottom_distance_z(card_size) + EXTRA_SLOT_DISTANCE) ])
-                block(card_size, i == NUM_SLOTS - 1);
+            is_top = i == NUM_SLOTS - 1;
+            translate([
+                (use_tiling_offset && (i % 2 == 1)) ? slot_width_distance_x(card_size) / 4 : 0, 0,
+                i * (slot_bottom_distance_z(card_size) + EXTRA_SLOT_DISTANCE)
+            ]) block(card_size, i % 2 == 1, is_top, include_engraving && is_top);
         }
     }
 }
 
-rotate([ ROTATE_FOR_PRINTING ? -90 : 0, 0, 0 ]) render() difference()
+// Fix tab negative placement.
+module double_block_array(n, card_size)
 {
-    block_array(NUM_SLOTS, CFEXPRESS_B_CARD_SIZE);
+    translate([ slot_width_distance_x(card_size), 0, 0 ]) block_array(n, card_size, false, true);
+    block_array(n, card_size, true, true);
 }
+
+rotate([ ROTATE_FOR_PRINTING ? -90 : 0, 0, 0 ]) render() block_array(NUM_SLOTS, CFEXPRESS_B_CARD_SIZE);
