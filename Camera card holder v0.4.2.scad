@@ -19,6 +19,7 @@ $fn = 180;
 - Reduce `EJECTOR_PLUNGER_WALL_CLEARANCE` to 0.3.
 - Adjust how close ejector plunger and lever distance are at printing time.
 - Thicken the lever around the axle.
+- Add lever printing supports.
 
 ## v0.4.1
 
@@ -227,6 +228,9 @@ module ejector_axle_hole_snappable_print_supports(card_size)
         centering_spec = "...");
 }
 
+LEVER_PRINT_SUPPORT_WIDTH = 0.5;
+LEVER_PRINT_SUPPORT_HEIGHT = 2;
+
 module ejector_lever_comp(card_size)
 {
     // Ejector back area
@@ -247,6 +251,17 @@ module ejector_lever_comp(card_size)
                 CLEARANCE
             ],
             "++.");
+
+    // Small printing connectors
+    positive() translate([
+        _x(card_size, 1 / 2) - LEVER_PRINT_SUPPORT_WIDTH,
+        _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR - _EPSILON - 0.5 + 0.2, 0
+    ]) aligned_cube([ LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_HEIGHT ], "++.");
+
+    positive() translate([
+        _x(card_size, 1 / 2) - CLEARANCE + 5.3, _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR - _EPSILON - 0.5 + 1.6,
+        0
+    ]) aligned_cube([ LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_HEIGHT ], "++.");
 
     translate(ejector_axle_center(card_size))
     {
