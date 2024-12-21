@@ -1,5 +1,4 @@
 VERSION_TEXT = "v0.4.4";
-DEBUG = false;
 
 NUM_SLOTS = DEBUG ? 1 : 1;
 DEBUG_SHOW_CROSS_SECTION = DEBUG;
@@ -12,6 +11,10 @@ STICK_OUT_MARGIN_Z = 0;
 $fn = 180;
 
 /*
+
+## v0.4.4
+
+- Fix the plunger front button width.
 
 ## v0.4.3
 
@@ -32,7 +35,7 @@ $fn = 180;
 - Increase the wall thickness between the card and the ejector plunger, for more subtle leverage and a larger available
 front surface that can be turned into a button.
   - Increase ejector plunger depth to compensate.
-- Add a bigger ejector button.
+- Add a bigger ejector button.o
 - Add snappable axle supports for printing.
 
 ## v0.4.0
@@ -352,10 +355,11 @@ module ejector_plunger_front(card_size)
     {
         difference()
         {
+            // TODO: refactor these calculations.
             aligned_cube(
                 [
                     WALL_WIDTH_FOR_EJECTOR_CHUTE - FRONT_WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_CHUTE_WIDTH_X -
-                        EJECTOR_PLUNGER_FRONT_ROUNDING_RADIUS * 2 - CLEARANCE,
+                        EJECTOR_PLUNGER_FRONT_ROUNDING_RADIUS * 1.5 - CLEARANCE,
                     EJECTOR_PLUNGER_RETAINER_INSET_DEPTH - EJECTOR_PLUNGER_FRONT_CLEARANCE_FROM_RETAINER - _EPSILON -
                         EJECTOR_PLUNGER_FRONT_TRANSITION_DEPTH_TO_STEM,
                     _z(card_size) - EJECTOR_PLUNGER_FRONT_ROUNDING_RADIUS * 2 + EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT - 2 *
