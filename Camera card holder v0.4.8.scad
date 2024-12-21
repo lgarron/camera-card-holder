@@ -16,6 +16,7 @@ $fn = 180;
 ## v0.4.8
 
 - Change the axle holder to only have extra print clearance on the supported side.
+- Inset the axle for a flush casing.
 
 ## v0.4.7
 
@@ -256,17 +257,21 @@ EJECTOR_LEVER_PRINTING_ANGLE = PLUNGER_PUSHED_IN ? 40 : 0;
 
 EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT = CASE_MARGIN_Z * 1 / 2;
 
+AXLE_INSET = 0.5;
+AXLE_INSET_CLEARANCE = 0.25;
+
 module ejector_axle_hole_snappable_print_supports(card_size)
 {
-    duplicate_and_mirror([ 0, 0, 1 ]) translate([ 0, 0, _z(card_size) / 2 + CASE_MARGIN_Z / 2 ]) aligned_cube(
-        [
-            EJECTOR_AXLE_RADIUS * 1 / 4,
-            (EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2 + 2 * _EPSILON) / 2,
-            EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT
-            // _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON + 2 *
-            // _EPSILON
-        ],
-        centering_spec = ".+.");
+    duplicate_and_mirror([ 0, 0, 1 ]) translate([ 0, 0, _z(card_size) / 2 + CASE_MARGIN_Z / 2 - AXLE_INSET / 2 ])
+        aligned_cube(
+            [
+                EJECTOR_AXLE_RADIUS * 1 / 4,
+                (EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2 + 2 * _EPSILON) / 2,
+                EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT
+                // _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON + 2 *
+                // _EPSILON
+            ],
+            centering_spec = ".+.");
 }
 
 LEVER_PRINT_SUPPORT_WIDTH = 0.5;
@@ -312,15 +317,15 @@ module ejector_lever_comp(card_size)
             union()
             {
 
-                cylinder(h = _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON,
+                cylinder(h = _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
                          r = EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_CLEARANCE, center = true);
 
                 {
                     aligned_cube(
                         [
                             EJECTOR_AXLE_RADIUS * 2 * 2 / 3, EJECTOR_AXLE_RADIUS + CLEARANCE + EJECTOR_AXLE_CLEARANCE,
-                            _z(card_size) + 2 * CASE_MARGIN_Z + 2 *
-                            _EPSILON
+                            _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 *
+                            AXLE_INSET_CLEARANCE
                         ],
                         centering_spec = ".+.");
                 }
@@ -330,7 +335,8 @@ module ejector_lever_comp(card_size)
         }
 
         // Axle
-        positive() cylinder(h = _z(card_size) + 2 * CASE_MARGIN_Z, r = EJECTOR_AXLE_RADIUS, center = true);
+        positive()
+            cylinder(h = _z(card_size) + 2 * CASE_MARGIN_Z - 2 * AXLE_INSET, r = EJECTOR_AXLE_RADIUS, center = true);
 
         // Lever
         positive() color("blue") rotate([ 0, 0, EJECTOR_LEVER_PRINTING_ANGLE ])
