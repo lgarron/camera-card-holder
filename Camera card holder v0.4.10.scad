@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.10
+
+- Decrease text engraving depth.
+
 ## v0.4.9
 
 - Adjust the axle inset further to accommodate double-wall slicing.
@@ -141,7 +145,7 @@ FUNNEL_DEPTH = 2.5;
 FUNNEL_DEFAULT_MARGIN_Z = 1;
 SPRING_WIDTH = 2;
 
-TEXT_ENGRAVING_DEPTH = 0.5;
+TEXT_ENGRAVING_DEPTH = 0.25;
 
 BEVEL_ROUNDING = 1.5;
 
