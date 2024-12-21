@@ -17,6 +17,7 @@ $fn = 180;
 
 - Remove one of the axle snap connectors.
 - Change the lever to be thicker throughout more of its length.
+- Reduce `EJECTOR_PLUNGER_WALL_CLEARANCE` further to 0.25.
 
 ## v0.4.2
 
@@ -320,7 +321,7 @@ module ejector_lever_comp(card_size)
 EJECTOR_PLUNGER_EXTRA_DEPTH = 4.8;
 PLUNGER_LEVER_CONTACT_ANTI_CLEARANCE = 0;
 
-EJECTOR_PLUNGER_WALL_CLEARANCE = 0.35;
+EJECTOR_PLUNGER_WALL_CLEARANCE = 0.25;
 
 EJECTOR_PLUNGER_RETAINER_INSET_DEPTH = 10;
 EJECTOR_PLUNGER_RETAINER_DEPTH = 5;
