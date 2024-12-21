@@ -13,6 +13,13 @@ $fn = 180;
 
 /*
 
+## v0.4.1
+
+- Increase the wall thickness between the card and the ejector plunger, for more subtle leverage and a larger available
+front surface that can be turned into a button.
+  - Increase ejector plunger depth to compensate.
+- TODO: snappable axle hole supports
+
 ## v0.4.0
 
 - Refactor into the `compose(…)` paradigm.
@@ -98,8 +105,9 @@ BEVEL_ROUNDING = 1.5;
 
 EXTRA_INTERNAL_DEPTH_FOR_EJECTOR = 7.3;
 EJECTOR_CHUTE_WIDTH_X = 4;
-WALL_WIDTH_FOR_EJECTOR_CHUTE = 1;
+WALL_WIDTH_FOR_EJECTOR_CHUTE = 3;
 EJECTOR_RETAINERS_TOTAL_HEIGHT = 2; // Top and bottom accoutn for half each.
+LEVER_BACK_EXTRA_DEPTH = 1.1;
 
 TOTAL_EXTRA_WIDTH_FOR_EJECTOR = WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_CHUTE_WIDTH_X;
 
@@ -211,6 +219,16 @@ module ejector_lever_comp(card_size)
             ],
             "++.");
 
+    // Ejector lever angling space
+    negative() translate([ _x(card_size, 1 / 2), _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR - _EPSILON, 0 ])
+        aligned_cube(
+            [
+                EJECTOR_CHUTE_WIDTH_X + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE, LEVER_BACK_EXTRA_DEPTH + _EPSILON,
+                _z(card_size) + 2 *
+                CLEARANCE
+            ],
+            "++.");
+
     // Ejector axle hole
     negative() translate(ejector_axle_center(card_size))
         cylinder(h = _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON, r = EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_CLEARANCE,
@@ -231,7 +249,7 @@ module ejector_lever_comp(card_size)
 }
 
 // Depends on other constants, but is much easier to hardcode than computer.
-EJECTOR_PLUNGER_EXTRA_DEPTH = 3.1;
+EJECTOR_PLUNGER_EXTRA_DEPTH = 5.05;
 PLUNGER_LEVER_CONTACT_ANTI_CLEARANCE = 0;
 
 module ejector_plunger_comp(card_size)
