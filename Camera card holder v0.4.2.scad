@@ -18,6 +18,7 @@ $fn = 180;
 - Swap to a single axle print support.
 - Reduce `EJECTOR_PLUNGER_WALL_CLEARANCE` to 0.3.
 - Adjust how close ejector plunger and lever distance are at printing time.
+- Thicken the lever around the axle.
 
 ## v0.4.1
 
@@ -278,13 +279,20 @@ module ejector_lever_comp(card_size)
 
         // Lever
         positive() color("blue") rotate([ 0, 0, EJECTOR_LEVER_PRINTING_ANGLE ])
-            translate([ SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE, 0, 0 ]) difference()
         {
-            aligned_cube(_x_z_(card_size) + [ 0, EJECTOR_LEVER_WIDTH, 0 ], "-..");
+            translate([ SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE, 0, 0 ]) difference()
+            {
+                aligned_cube(_x_z_(card_size) + [ 0, EJECTOR_LEVER_WIDTH, 0 ], "-..");
 
-            translate(-_x_(card_size, 1 / 2)) duplicate_and_mirror([ 0, 1, 0 ]) duplicate_and_mirror()
-                translate(_x_(card_size, -1 / 2) + [ 0, -EJECTOR_LEVER_WIDTH / 2, 0 ]) round_bevel_complement(
-                    height = _z(card_size) + 2 * _EPSILON, radius = EJECTOR_LEVER_WIDTH / 2, center_z = true);
+                translate(-_x_(card_size, 1 / 2)) duplicate_and_mirror([ 0, 1, 0 ]) duplicate_and_mirror()
+                    translate(_x_(card_size, -1 / 2) + [ 0, -EJECTOR_LEVER_WIDTH / 2, 0 ]) round_bevel_complement(
+                        height = _z(card_size) + 2 * _EPSILON, radius = EJECTOR_LEVER_WIDTH / 2, center_z = true);
+            }
+            difference()
+            {
+                scale([ 2.7, 2.55, 1 ]) cylinder(h = _z(card_size), r = EJECTOR_LEVER_WIDTH / 2, center = true);
+                aligned_cube([ LARGE_VALUE, LARGE_VALUE, LARGE_VALUE ], ".-.");
+            }
         }
     }
 }
