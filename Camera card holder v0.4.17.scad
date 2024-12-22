@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.17
+
+- Round the entire array instead of individual slot blocks.
+
 ## v0.4.16
 
 - Reduce back spring compression even more.
@@ -158,6 +162,7 @@ include <./node_modules/scad/aligned_primitives.scad>
 include <./node_modules/scad/compose.scad>
 include <./node_modules/scad/duplicate.scad>
 include <./node_modules/scad/epsilon.scad>
+include <./node_modules/scad/minkowski_shell.scad>
 include <./node_modules/scad/round_bevel.scad>
 include <./node_modules/scad/xyz.scad>
 
@@ -193,20 +198,24 @@ function slot_bottom_distance_z(card_size) = _z(card_size) + CASE_MARGIN_Z + CLE
 function slot_width_distance_x(card_size) = _x(card_size) + 2 * SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE
                                             + EJECTOR_CHUTE_WIDTH_X + CASE_MARGIN_Z;
 
-module casing(card_size)
+module casing(card_size, include_bevel_rounding, extra_height = 0)
 {
-    translate([ TOTAL_EXTRA_WIDTH_FOR_EJECTOR / 2, 0, 0 ]) minkowski()
+    translate([ TOTAL_EXTRA_WIDTH_FOR_EJECTOR / 2, 0, extra_height / 2 ]) minkowski()
     {
+        bevel_rounding_value = (include_bevel_rounding ? 2 * BEVEL_ROUNDING : 0);
         aligned_cube(
             card_size +
                 [
-                    DEFAULT_MARGIN * 2 - 2 * BEVEL_ROUNDING + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_CHUTE_WIDTH_X,
-                    CASE_BACK_THICKNESS + STICK_OUT_MARGIN_Z - 2 * BEVEL_ROUNDING + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR,
-                    2 * CASE_MARGIN_Z - 2 *
-                    BEVEL_ROUNDING
+                    DEFAULT_MARGIN * 2 - bevel_rounding_value + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_CHUTE_WIDTH_X,
+                    CASE_BACK_THICKNESS + STICK_OUT_MARGIN_Z - bevel_rounding_value + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR,
+                    2 * CASE_MARGIN_Z - bevel_rounding_value +
+                    extra_height
                 ],
             ".+.");
-        translate([ 0, BEVEL_ROUNDING, 0 ]) sphere(BEVEL_ROUNDING);
+        if (include_bevel_rounding)
+        {
+            translate([ 0, BEVEL_ROUNDING, 0 ]) sphere(BEVEL_ROUNDING);
+        }
     }
 }
 
@@ -591,7 +600,7 @@ module conditional_mirror(condition, v)
     }
 }
 
-module block(card_size, mirror_x, is_top, is_bottom, engrave)
+module block(card_size, mirror_x, is_top, is_bottom, engrave, include_bevel_rounding)
 {
     compose()
     {
@@ -599,7 +608,7 @@ module block(card_size, mirror_x, is_top, is_bottom, engrave)
         {
             translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ])
             {
-                carvable() casing(card_size);
+                carvable() casing(card_size, include_bevel_rounding);
 
                 card_slot_comp(card_size);
                 ejector_comp(card_size);
@@ -648,20 +657,28 @@ module block(card_size, mirror_x, is_top, is_bottom, engrave)
     }
 }
 
-EXTRA_SLOT_DISTANCE = 0;
-
 module block_array(n, card_size, include_engraving = true, use_tiling_offset = false)
 {
-    render() union()
+    difference()
     {
-        for (i = [0:NUM_SLOTS - 1])
+        render() union()
         {
-            is_top = i == NUM_SLOTS - 1;
-            is_bottom = i == 0;
-            translate([
-                (use_tiling_offset && (i % 2 == 1)) ? slot_width_distance_x(card_size) / 4 : 0, 0,
-                i * (slot_bottom_distance_z(card_size) + EXTRA_SLOT_DISTANCE)
-            ]) block(card_size, i % 2 == 1, is_top, is_bottom, include_engraving && is_top);
+            for (i = [0:NUM_SLOTS - 1])
+            {
+                is_top = i == NUM_SLOTS - 1;
+                is_bottom = i == 0;
+                translate([
+                    (use_tiling_offset && (i % 2 == 1)) ? slot_width_distance_x(card_size) / 4 : 0, 0,
+                    i * (slot_bottom_distance_z(card_size))
+                ]) block(card_size, i % 2 == 1, is_top, is_bottom, include_engraving && is_top, false);
+            }
+        }
+
+        color("orange") render() minkowski_shell()
+        {
+            translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ])
+                casing(card_size, BEVEL_ROUNDING, extra_height = (n - 1) * slot_bottom_distance_z(card_size));
+            cube(BEVEL_ROUNDING, center = true);
         }
     }
 }
