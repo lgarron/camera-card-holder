@@ -1,7 +1,7 @@
 VERSION_TEXT = "v0.4.19";
 
 DEBUG = false;
-NUM_SLOTS = /* DEBUG ? 1 : */ 4;
+NUM_SLOTS = DEBUG ? 1 : 4;
 DEBUG_SHOW_CROSS_SECTION = DEBUG;
 ROTATE_FOR_PRINTING = !DEBUG;
 
@@ -12,6 +12,10 @@ STICK_OUT_MARGIN_Z = 0;
 $fn = 180;
 
 /*
+
+## v0.4.19
+
+- Adjust the lever calculations so they also work for SD card sizes.
 
 ## v0.4.18
 
@@ -169,6 +173,7 @@ include <./node_modules/scad/duplicate.scad>
 include <./node_modules/scad/epsilon.scad>
 include <./node_modules/scad/minkowski_shell.scad>
 include <./node_modules/scad/round_bevel.scad>
+include <./node_modules/scad/vendor/BOSL2/std.scad>
 include <./node_modules/scad/xyz.scad>
 
 CFEXPRESS_B_CARD_SIZE = [ 29.60, 38.55, 3.85 ];
@@ -318,7 +323,9 @@ module card_slot_comp(card_size)
     positive() % translate([ 0, STICK_OUT_MARGIN_Z, 0 ]) aligned_cube(card_size, ".+.");
 }
 
-EJECTOR_LEVER_WIDTH = EJECTOR_AXLE_RADIUS * 1;
+EJECTOR_LEVER_WIDTH = EJECTOR_AXLE_RADIUS * 4;
+EJECTOR_LEVER_OFFSET_ANGLED_Y = EJECTOR_AXLE_RADIUS;
+EJECTOR_LEVER_ROUNDING = EJECTOR_AXLE_RADIUS / 2;
 EJECTOR_LEVER_PRINTING_ANGLE = PLUNGER_PUSHED_IN ? 30 : 0;
 
 EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT = CASE_MARGIN_Z * 1 / 2;
@@ -346,9 +353,6 @@ LEVER_PRINT_SUPPORT_HEIGHT = 2;
 LEVER_SCALE = 1.25;
 LEVER_OFFSET = 2;
 
-EJECTOR_LEVER_ANGLING_SPACE_EXTRA_WIDTH = 2.9;
-EJECTOR_BOTTOM_SUPPORT_OFFSET_X = 5.4;
-
 module untranslated_axle_hole(card_size)
 {
 
@@ -370,6 +374,18 @@ module untranslated_axle_hole(card_size)
     }
 }
 
+module lever_intersection_base(lever_values_struct, rotate_deep_side)
+{
+    minkowski()
+    {
+
+        aligned_cube(struct_val(lever_values_struct, "lever_core_size") +
+                         [ 0, struct_val(lever_values_struct, "large_value_for_y"), 0 ],
+                     ".+.");
+        cylinder(_EPSILON, r = EJECTOR_LEVER_ROUNDING, center = true);
+    }
+}
+
 module ejector_lever_comp(card_size)
 {
     // Ejector back area
@@ -380,35 +396,6 @@ module ejector_lever_comp(card_size)
                 CLEARANCE
             ],
             "++.");
-
-    // Ejector lever angling space
-    negative() translate([
-        _x(card_size, 1 / 2) - EJECTOR_LEVER_ANGLING_SPACE_EXTRA_WIDTH,
-        _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR - _EPSILON, 0
-    ])
-        aligned_cube(
-            [
-                EJECTOR_CHUTE_WIDTH_X + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE +
-                    EJECTOR_LEVER_ANGLING_SPACE_EXTRA_WIDTH,
-                LEVER_BACK_EXTRA_DEPTH + _EPSILON, _z(card_size) + 2 *
-                CLEARANCE
-            ],
-            "++.");
-
-    // Small printing connectors
-    positive() translate([
-        _x(card_size, 1 / 2) - LEVER_PRINT_SUPPORT_WIDTH - EJECTOR_LEVER_ANGLING_SPACE_EXTRA_WIDTH,
-        _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR - _EPSILON - 0.5 + 0.2, 0
-    ]) aligned_cube([ LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_HEIGHT ], "++.");
-    positive() translate([
-        _x(card_size, 1 / 2) - LEVER_PRINT_SUPPORT_WIDTH - EJECTOR_LEVER_ANGLING_SPACE_EXTRA_WIDTH + 4.6,
-        _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR - _EPSILON - 0.4, 0
-    ]) aligned_cube([ LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_HEIGHT ], "++.");
-
-    positive() translate([
-        _x(card_size, 1 / 2) - CLEARANCE + EJECTOR_BOTTOM_SUPPORT_OFFSET_X,
-        _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR - _EPSILON - 0.5, 0
-    ]) aligned_cube([ LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_WIDTH, LEVER_PRINT_SUPPORT_HEIGHT ], "++.");
 
     translate(ejector_axle_center(card_size))
     {
@@ -425,37 +412,76 @@ module ejector_lever_comp(card_size)
             cylinder(h = _z(card_size) + 2 * CASE_MARGIN_Z - 2 * AXLE_INSET, r = EJECTOR_AXLE_RADIUS, center = true);
 
         // Lever
-        positive() color("blue") rotate([ 0, 0, EJECTOR_LEVER_PRINTING_ANGLE ])
+        lever_values_struct = struct_set([], [
+            //
+            "lever_offset",
+            [
+                -_x(card_size, LEVER_SCALE) / 2 + SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE +
+                    LEVER_OFFSET,
+                EJECTOR_LEVER_OFFSET_ANGLED_Y, 0
+            ],
+            //
+            "large_value_for_y", _x(card_size, LEVER_SCALE),
+            //
+            "lever_core_size",
+            _x_(card_size, LEVER_SCALE) + _z_(card_size) + [ 0, EJECTOR_LEVER_WIDTH, 0 ] -
+                [ 2 * EJECTOR_LEVER_ROUNDING, 2 * EJECTOR_LEVER_ROUNDING, -_EPSILON ]
+        ]);
+        local_offset_1 = _x_(struct_val(lever_values_struct, "lever_core_size"), -1 / 2);
+        local_offset_2 = _y_(struct_val(lever_values_struct, "lever_core_size"), -1 / 2) +
+                         struct_val(lever_values_struct, "lever_offset");
+        color("purple") positive() rotate([ 0, 0, EJECTOR_LEVER_PRINTING_ANGLE ])
         {
-            lever_offset_y = -EJECTOR_AXLE_RADIUS + EJECTOR_LEVER_WIDTH / 2;
+            lever_offset_y = -EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_RADIUS / 2;
             translate([ SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE + LEVER_OFFSET, 0, 0 ]) difference()
             {
                 translate([ 0, lever_offset_y, 0 ])
-                    aligned_cube(_x_(card_size, LEVER_SCALE) + _z_(card_size) + [ 0, EJECTOR_LEVER_WIDTH, 0 ], "-..");
+                    aligned_cube(_x_(card_size, LEVER_SCALE) + _z_(card_size) + [ 0, EJECTOR_AXLE_RADIUS, 0 ], "-..");
 
                 translate(-_x_(card_size, LEVER_SCALE / 2) + [ 0, lever_offset_y, 0 ]) duplicate_and_mirror([ 0, 1, 0 ])
                     duplicate_and_mirror()
-                        translate(_x_(card_size, -LEVER_SCALE / 2) + [ 0, -EJECTOR_LEVER_WIDTH / 2, 0 ])
+                        translate(_x_(card_size, -LEVER_SCALE / 2) + [ 0, -EJECTOR_AXLE_RADIUS / 2, 0 ])
                             round_bevel_complement(height = _z(card_size) + 2 * _EPSILON,
-                                                   radius = EJECTOR_LEVER_WIDTH / 2, center_z = true);
+                                                   radius = EJECTOR_AXLE_RADIUS / 2, center_z = true);
             }
+
+            {
+                translate(local_offset_2) intersection()
+                {
+                    lever_intersection_base(lever_values_struct);
+
+                    translate(-local_offset_1) rotate([ 0, 0, 90 - EJECTOR_LEVER_PRINTING_ANGLE + 10 ])
+                        translate(local_offset_1) lever_intersection_base(lever_values_struct);
+                    translate(local_offset_1) rotate([ 0, 0, -60 ]) translate(-local_offset_1)
+                        lever_intersection_base(lever_values_struct);
+
+                    translate([ 0, EJECTOR_AXLE_RADIUS * 2.5, 0 ])
+                        aligned_cube([ LARGE_VALUE, LARGE_VALUE, LARGE_VALUE ], ".-.");
+                    // translate(lever_offset) aligned_cube(lever_core_size + [ 0, _x(card_size, LEVER_SCALE), 0 ],
+                    // ".+.");``
+                }
+            }
+        }
+
+        axle_center_to_back_y = (_y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR) - _y(ejector_axle_center(card_size));
+        difference()
+        {
             union()
             {
-                // TODO: neaten this up.
-                translate([ -8, 0, 0 ]) aligned_cube([ 22, 4, _z(card_size) ], ".+.");
-                translate([ -4.1, -1.85, 0 ]) aligned_cube([ 22, 3.5, _z(card_size) ], ".+.");
-                translate([ -23, -2, 0 ]) rotate([ 0, 0, 20 ]) aligned_cube([ 6, 2, _z(card_size) ], "++.");
-                translate([ -24.8, -2, 0 ]) rotate([ 0, 0, 32 ]) aligned_cube([ 8.1, 2, _z(card_size) ], "++.");
-                translate([ 9.7, -2, 0 ]) rotate([ 0, 0, 160 ]) aligned_cube([ 8.1, 2, _z(card_size) ], "+-.");
-                translate([ 8.7, -2, 0 ]) rotate([ 0, 0, 160 ]) aligned_cube([ 8.1, 2, _z(card_size) ], "+-.");
+                aligned_cube(
+                    [ LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, LEVER_PRINT_SUPPORT_HEIGHT ], ".+.");
+
+                translate([ 0, -1, 0 ]) rotate([ 0, 0, EJECTOR_LEVER_PRINTING_ANGLE ])
+                    duplicate_and_translate([ 5.25, 0, 0 ]) translate([ 5.25, 0, 0 ])
+                        rotate([ 0, 0, -EJECTOR_LEVER_PRINTING_ANGLE ]) aligned_cube(
+                            [ LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, LEVER_PRINT_SUPPORT_HEIGHT ],
+                            ".+.");
             }
+            translate([ 0, axle_center_to_back_y + _EPSILON, 0 ])
+                aligned_cube([ LARGE_VALUE, LARGE_VALUE, LARGE_VALUE ], centering_spec = ".+.");
         }
     }
 }
-
-// Depends on other constants, but is much easier to hardcode than computer.
-EJECTOR_PLUNGER_EXTRA_DEPTH = 5.55;
-PLUNGER_LEVER_CONTACT_ANTI_CLEARANCE = 0;
 
 EJECTOR_PLUNGER_STEM_CLEARANCE = 0.2;
 EJECTOR_PLUNGER_HEAD_CLEARANCE = 0.15;
@@ -510,7 +536,9 @@ module ejector_plunger_front(card_size)
 
 module ejector_plunger_comp(card_size)
 {
-    plunger_depth_y = _y(card_size) + STICK_OUT_MARGIN_Z + EJECTOR_PLUNGER_EXTRA_DEPTH;
+    // TODO: Do the math properly. This is a hack to work for CFExpress and SD cards.
+    ejector_plunger_extra_depth = (0.06 * _y(card_size) + 0.084 * 38.55);
+    plunger_depth_y = _y(card_size) + STICK_OUT_MARGIN_Z + ejector_plunger_extra_depth;
 
     // Ejector chute (back)
     color("red") negative() translate([
@@ -556,19 +584,19 @@ module ejector_plunger_comp(card_size)
 
     positive() color("green") translate([
         _x(card_size, 1 / 2) + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_STEM_CLEARANCE,
-        PLUNGER_PUSHED_IN ? 0 : -EJECTOR_PLUNGER_EXTRA_DEPTH + PLUNGER_LEVER_CONTACT_ANTI_CLEARANCE, 0
+        PLUNGER_PUSHED_IN ? 0 : -ejector_plunger_extra_depth, 0
     ]) difference()
     {
         union()
         {
             translate([
-                0, EJECTOR_PLUNGER_RETAINER_DEPTH + EJECTOR_PLUNGER_EXTRA_DEPTH + EJECTOR_PLUNGER_RETAINER_INSET_DEPTH,
+                0, EJECTOR_PLUNGER_RETAINER_DEPTH + ejector_plunger_extra_depth + EJECTOR_PLUNGER_RETAINER_INSET_DEPTH,
                 0
             ])
                 aligned_cube(
                     [
                         EJECTOR_CHUTE_WIDTH_X - 2 * EJECTOR_PLUNGER_STEM_CLEARANCE,
-                        plunger_depth_y - EJECTOR_PLUNGER_RETAINER_DEPTH - EJECTOR_PLUNGER_EXTRA_DEPTH -
+                        plunger_depth_y - EJECTOR_PLUNGER_RETAINER_DEPTH - ejector_plunger_extra_depth -
                             EJECTOR_PLUNGER_RETAINER_INSET_DEPTH,
                         _z(card_size)
                     ],
