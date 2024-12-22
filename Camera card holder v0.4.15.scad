@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.15
+
+- Fix the axle hole and plunger chute carving forrealz.
+
 ## v0.4.14
 
 - Increase `EJECTOR_PLUNGER_WALL_CLEARANCE` to 0.2.
@@ -599,20 +603,24 @@ module block(card_size, mirror_x, is_top, is_bottom, engrave)
             }
 
             negative() mirror([ 1, 0, 0 ]) translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ])
-                translate([ 0, 0, -slot_bottom_distance_z(card_size) ])
             {
                 if (!is_bottom)
                 {
-                    translate([ 0, 0, 2 ]) translate(ejector_axle_center(card_size)) untranslated_axle_hole(card_size);
+                    translate([ 0, 0, -slot_bottom_distance_z(card_size) ])
+                    {
+                        translate([ 0, 0, 2 ]) translate(ejector_axle_center(card_size))
+                            untranslated_axle_hole(card_size);
+                        ejector_plunger_comp(card_size, $compose_mode = "negative");
+                    }
                 }
                 if (!is_top)
-                {
-                    translate([ 0, 0, -2 ]) translate(ejector_axle_center(card_size)) untranslated_axle_hole(card_size);
-                }
-                if (!is_bottom)
-                {
-                    ejector_plunger_comp(card_size, $compose_mode = "negative");
-                }
+                    translate([ 0, 0, slot_bottom_distance_z(card_size) ])
+                    {
+                        translate([ 0, 0, -2 ]) translate(ejector_axle_center(card_size))
+                            untranslated_axle_hole(card_size);
+
+                        ejector_plunger_comp(card_size, $compose_mode = "negative");
+                    }
             }
         }
 
