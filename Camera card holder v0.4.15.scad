@@ -17,6 +17,7 @@ $fn = 180;
 
 - Fix the axle hole and plunger chute carving forrealz.
 - Decrease the plunger wall clearance for the head.
+- Decrease the back spring compression to an even further negative value.
 
 ## v0.4.14
 
@@ -267,10 +268,13 @@ module spring_pair(card_size, compression)
     }
 }
 
+BACK_SPRINGS_COMPRESSION = -0.2;
+FRONT_SPRINGS_COMPRESSION = 0.05;
+
 module springs_comp(card_size)
 {
-    duplicate_and_translate([ 0, spring_depth(card_size), 0 ]) spring_pair(card_size, -0.1);
-    spring_pair(card_size, 0.05);
+    duplicate_and_translate([ 0, spring_depth(card_size), 0 ]) spring_pair(card_size, BACK_SPRINGS_COMPRESSION);
+    spring_pair(card_size, FRONT_SPRINGS_COMPRESSION);
 }
 
 CARD_TAB_WIDTH = 11; // rounded up
