@@ -16,6 +16,7 @@ $fn = 180;
 ## v0.4.15
 
 - Fix the axle hole and plunger chute carving forrealz.
+- Decrease the plunger wall clearance for the head.
 
 ## v0.4.14
 
@@ -433,7 +434,8 @@ module ejector_lever_comp(card_size)
 EJECTOR_PLUNGER_EXTRA_DEPTH = 5.55;
 PLUNGER_LEVER_CONTACT_ANTI_CLEARANCE = 0;
 
-EJECTOR_PLUNGER_WALL_CLEARANCE = 0.2;
+EJECTOR_PLUNGER_STEM_CLEARANCE = 0.2;
+EJECTOR_PLUNGER_HEAD_CLEARANCE = 0.15;
 
 EJECTOR_PLUNGER_RETAINER_INSET_DEPTH = 10;
 EJECTOR_PLUNGER_RETAINER_DEPTH = 5;
@@ -458,7 +460,7 @@ module ejector_plunger_front(card_size)
 {
     color("blue") translate([
         _x(card_size, 1 / 2) + SPRING_WIDTH + FRONT_WALL_WIDTH_FOR_EJECTOR_CHUTE +
-            EJECTOR_PLUNGER_FRONT_ROUNDING_RADIUS + EJECTOR_PLUNGER_WALL_CLEARANCE + CLEARANCE,
+            EJECTOR_PLUNGER_FRONT_ROUNDING_RADIUS + EJECTOR_PLUNGER_HEAD_CLEARANCE + CLEARANCE,
         EJECTOR_PLUNGER_FRONT_TRANSITION_DEPTH_TO_STEM, 0
     ]) minkowski()
     {
@@ -472,7 +474,7 @@ module ejector_plunger_front(card_size)
                     EJECTOR_PLUNGER_RETAINER_INSET_DEPTH - EJECTOR_PLUNGER_FRONT_CLEARANCE_FROM_RETAINER - _EPSILON -
                         EJECTOR_PLUNGER_FRONT_TRANSITION_DEPTH_TO_STEM,
                     _z(card_size) - EJECTOR_PLUNGER_FRONT_ROUNDING_RADIUS * 2 + EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT - 2 *
-                    EJECTOR_PLUNGER_WALL_CLEARANCE
+                    EJECTOR_PLUNGER_HEAD_CLEARANCE
                 ],
                 "++.");
 
@@ -523,14 +525,14 @@ module ejector_plunger_comp(card_size)
         ejector_plunger_front(card_size);
         cube(
             [
-                2 * EJECTOR_PLUNGER_WALL_CLEARANCE, 2 * EJECTOR_PLUNGER_FRONT_CLEARANCE_FROM_RETAINER, 2 *
-                EJECTOR_PLUNGER_WALL_CLEARANCE
+                2 * EJECTOR_PLUNGER_HEAD_CLEARANCE, 2 * EJECTOR_PLUNGER_FRONT_CLEARANCE_FROM_RETAINER, 2 *
+                EJECTOR_PLUNGER_HEAD_CLEARANCE
             ],
             center = true);
     }
 
     positive() color("green") translate([
-        _x(card_size, 1 / 2) + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WALL_CLEARANCE,
+        _x(card_size, 1 / 2) + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_STEM_CLEARANCE,
         PLUNGER_PUSHED_IN ? 0 : -EJECTOR_PLUNGER_EXTRA_DEPTH + PLUNGER_LEVER_CONTACT_ANTI_CLEARANCE, 0
     ]) difference()
     {
@@ -542,7 +544,7 @@ module ejector_plunger_comp(card_size)
             ])
                 aligned_cube(
                     [
-                        EJECTOR_CHUTE_WIDTH_X - 2 * EJECTOR_PLUNGER_WALL_CLEARANCE,
+                        EJECTOR_CHUTE_WIDTH_X - 2 * EJECTOR_PLUNGER_STEM_CLEARANCE,
                         plunger_depth_y - EJECTOR_PLUNGER_RETAINER_DEPTH - EJECTOR_PLUNGER_EXTRA_DEPTH -
                             EJECTOR_PLUNGER_RETAINER_INSET_DEPTH,
                         _z(card_size)
@@ -550,10 +552,10 @@ module ejector_plunger_comp(card_size)
                     "++.");
             aligned_cube(
                 [
-                    EJECTOR_CHUTE_WIDTH_X - 2 * EJECTOR_PLUNGER_WALL_CLEARANCE, plunger_depth_y, _z(card_size) -
+                    EJECTOR_CHUTE_WIDTH_X - 2 * EJECTOR_PLUNGER_STEM_CLEARANCE, plunger_depth_y, _z(card_size) -
                     EJECTOR_RETAINERS_TOTAL_HEIGHT
                 ],
-                "++."); // Top and bottom accoutn for half each.
+                "++."); // Top and bottom account for half each.
         }
         translate([ 0, plunger_depth_y, 0 ]) mirror([ 0, 1, 0 ]) round_bevel_complement(
             height = _z(card_size) + 2 * _EPSILON, radius = EJECTOR_CHUTE_WIDTH_X / 2, center_z = true);
