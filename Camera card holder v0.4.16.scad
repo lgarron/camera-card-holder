@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.16
+
+- Reduce back spring compression even more.
+
 ## v0.4.15
 
 - Fix the axle hole and plunger chute carving forrealz.
@@ -269,7 +273,7 @@ module spring_pair(card_size, compression)
     }
 }
 
-BACK_SPRINGS_COMPRESSION = -0.2;
+BACK_SPRINGS_COMPRESSION = -0.4;
 FRONT_SPRINGS_COMPRESSION = 0.05;
 
 module springs_comp(card_size)
