@@ -1,7 +1,7 @@
 VERSION_TEXT = "v0.4.17";
 
 DEBUG = false;
-NUM_SLOTS = /* DEBUG ? 1 : */ 3;
+NUM_SLOTS = /* DEBUG ? 1 : */ 4;
 DEBUG_SHOW_CROSS_SECTION = DEBUG;
 ROTATE_FOR_PRINTING = !DEBUG;
 
@@ -16,6 +16,7 @@ $fn = 180;
 ## v0.4.17
 
 - Round the entire array instead of individual slot blocks.
+- Increase the number of slots to 4.
 
 ## v0.4.16
 
