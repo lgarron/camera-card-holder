@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.13
+
+- Ensure the axle holes and plunger chutes are properly carved from adjacent stacked casings.
+
 ## v0.4.12
 
 - Implement stacking.
@@ -567,7 +571,7 @@ module conditional_mirror(condition, v)
     }
 }
 
-module block(card_size, mirror_x, is_top, engrave)
+module block(card_size, mirror_x, is_top, is_bottom, engrave)
 {
     compose()
     {
@@ -589,10 +593,21 @@ module block(card_size, mirror_x, is_top, engrave)
                 }
             }
 
-            if (!is_top)
+            negative() mirror([ 1, 0, 0 ]) translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ])
+                translate([ 0, 0, -slot_bottom_distance_z(card_size) ])
             {
-                negative() mirror([ 1, 0, 0 ]) translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ]) translate([ 0, 0, 2 ])
-                    translate(ejector_axle_center(card_size)) untranslated_axle_hole(card_size);
+                if (!is_bottom)
+                {
+                    translate([ 0, 0, 2 ]) translate(ejector_axle_center(card_size)) untranslated_axle_hole(card_size);
+                }
+                if (!is_top)
+                {
+                    translate([ 0, 0, -2 ]) translate(ejector_axle_center(card_size)) untranslated_axle_hole(card_size);
+                }
+                if (!is_bottom)
+                {
+                    ejector_plunger_comp(card_size, $compose_mode = "negative");
+                }
             }
         }
 
@@ -618,15 +633,16 @@ module block_array(n, card_size, include_engraving = true, use_tiling_offset = f
         for (i = [0:NUM_SLOTS - 1])
         {
             is_top = i == NUM_SLOTS - 1;
+            is_bottom = i == 0;
             translate([
                 (use_tiling_offset && (i % 2 == 1)) ? slot_width_distance_x(card_size) / 4 : 0, 0,
                 i * (slot_bottom_distance_z(card_size) + EXTRA_SLOT_DISTANCE)
-            ]) block(card_size, i % 2 == 1, is_top, include_engraving && is_top);
+            ]) block(card_size, i % 2 == 1, is_top, is_bottom, include_engraving && is_top);
         }
     }
 }
 
-// Fix tab negative placement.
+// TODO: Fix tab negative placement.
 module double_block_array(n, card_size)
 {
     translate([ slot_width_distance_x(card_size), 0, 0 ]) block_array(n, card_size, false, true);
