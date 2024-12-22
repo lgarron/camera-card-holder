@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.18
+
+- `compose()` all blocks instead of duplicating code for carveouts.
+
 ## v0.4.17
 
 - Round the entire array instead of individual slot blocks.
@@ -601,60 +605,30 @@ module conditional_mirror(condition, v)
     }
 }
 
-module block(card_size, mirror_x, is_top, is_bottom, engrave, include_bevel_rounding)
+module block_comp(card_size, mirror_x, is_top, is_bottom, engrave, include_bevel_rounding)
 {
-    compose()
+    conditional_mirror(mirror_x, [ 1, 0, 0 ])
     {
-        conditional_mirror(mirror_x, [ 1, 0, 0 ])
+        translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ])
         {
-            translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ])
+            carvable() casing(card_size, include_bevel_rounding);
+
+            card_slot_comp(card_size);
+            ejector_comp(card_size);
+            springs_comp(card_size);
+
+            if (DEBUG_SHOW_CROSS_SECTION)
             {
-                carvable() casing(card_size, include_bevel_rounding);
-
-                card_slot_comp(card_size);
-                ejector_comp(card_size);
-                springs_comp(card_size);
-
-                if (DEBUG_SHOW_CROSS_SECTION)
-                {
-                    negative() translate([ 0, 0, LARGE_VALUE / 2 ]) cube(LARGE_VALUE, center = true);
-                    // translate(ejector_axle_center(card_size)) negative() translate([ LARGE_VALUE / 2, 0, 0 ])
-                    //     cube(LARGE_VALUE, center = true);
-                }
-            }
-
-            negative() mirror([ 1, 0, 0 ]) translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ])
-            {
-                if (!is_bottom)
-                {
-                    translate([ 0, 0, -slot_bottom_distance_z(card_size) ])
-                    {
-                        translate([ 0, 0, 2 ]) translate(ejector_axle_center(card_size))
-                            untranslated_axle_hole(card_size);
-                        ejector_plunger_comp(card_size, $compose_mode = "negative");
-                    }
-                }
-                if (!is_top)
-                    translate([ 0, 0, slot_bottom_distance_z(card_size) ])
-                    {
-                        translate([ 0, 0, -2 ]) translate(ejector_axle_center(card_size))
-                            untranslated_axle_hole(card_size);
-
-                        ejector_plunger_comp(card_size, $compose_mode = "negative");
-                    }
+                negative() translate([ 0, 0, LARGE_VALUE / 2 ]) cube(LARGE_VALUE, center = true);
+                // translate(ejector_axle_center(card_size)) negative() translate([ LARGE_VALUE / 2, 0, 0 ])
+                //     cube(LARGE_VALUE, center = true);
             }
         }
+    }
 
-        if (!is_top)
-        {
-            conditional_mirror(mirror_x, [ 1, 0, 0 ]) translate([ -ARRAY_CENTERING_OFFSET_X, 0, 0 ])
-                translate([ 0, 0, slot_bottom_distance_z(card_size) ]) card_tab_negative_comp(card_size);
-        }
-
-        if (engrave)
-        {
-            engraving_comp(card_size);
-        }
+    if (engrave)
+    {
+        engraving_comp(card_size);
     }
 }
 
@@ -662,7 +636,7 @@ module block_array(n, card_size, include_engraving = true, use_tiling_offset = f
 {
     difference()
     {
-        render() union()
+        render() compose() union()
         {
             for (i = [0:NUM_SLOTS - 1])
             {
@@ -671,7 +645,7 @@ module block_array(n, card_size, include_engraving = true, use_tiling_offset = f
                 translate([
                     (use_tiling_offset && (i % 2 == 1)) ? slot_width_distance_x(card_size) / 4 : 0, 0,
                     i * (slot_bottom_distance_z(card_size))
-                ]) block(card_size, i % 2 == 1, is_top, is_bottom, include_engraving && is_top, false);
+                ]) block_comp(card_size, i % 2 == 1, is_top, is_bottom, include_engraving && is_top, false);
             }
         }
 
