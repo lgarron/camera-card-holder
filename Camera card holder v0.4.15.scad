@@ -1,7 +1,7 @@
 VERSION_TEXT = "v0.4.15";
 
 DEBUG = false;
-NUM_SLOTS = /* DEBUG ? 1 : */ 2;
+NUM_SLOTS = /* DEBUG ? 1 : */ 3;
 DEBUG_SHOW_CROSS_SECTION = DEBUG;
 ROTATE_FOR_PRINTING = !DEBUG;
 
@@ -18,6 +18,7 @@ $fn = 180;
 - Fix the axle hole and plunger chute carving forrealz.
 - Decrease the plunger wall clearance for the head.
 - Decrease the back spring compression to an even further negative value.
+- Increase the number of slots to 3 for testing.
 
 ## v0.4.14
 
