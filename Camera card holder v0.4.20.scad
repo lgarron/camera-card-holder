@@ -1,6 +1,6 @@
 VERSION_TEXT = "v0.4.20";
 
-DEBUG = false;
+DEBUG = true;
 NUM_SLOTS = DEBUG ? 1 : 4;
 DEBUG_SHOW_CROSS_SECTION = DEBUG;
 ROTATE_FOR_PRINTING = !DEBUG;
@@ -167,7 +167,6 @@ BUG: air hole accidentally failed to be included due to 🤬
 
 */
 
-include <./node_modules/scad/aligned_primitives.scad>
 include <./node_modules/scad/compose.scad>
 include <./node_modules/scad/duplicate.scad>
 include <./node_modules/scad/epsilon.scad>
@@ -213,7 +212,7 @@ module casing(card_size, include_bevel_rounding, extra_height = 0)
     translate([ TOTAL_EXTRA_WIDTH_FOR_EJECTOR / 2, 0, extra_height / 2 ]) minkowski()
     {
         bevel_rounding_value = (include_bevel_rounding ? 2 * BEVEL_ROUNDING : 0);
-        aligned_cube(
+        cuboid(
             card_size +
                 [
                     DEFAULT_MARGIN * 2 - bevel_rounding_value + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_CHUTE_WIDTH_X,
@@ -221,7 +220,7 @@ module casing(card_size, include_bevel_rounding, extra_height = 0)
                     2 * CASE_MARGIN_Z - bevel_rounding_value +
                     extra_height
                 ],
-            ".+.");
+            anchor = FRONT);
         if (include_bevel_rounding)
         {
             translate([ 0, BEVEL_ROUNDING, 0 ]) sphere(BEVEL_ROUNDING);
@@ -241,7 +240,7 @@ module funnel_comp(card_size)
 {
     negative() minkowski()
     {
-        aligned_cube(_x_z_(card_size) + [ 0, _EPSILON, 0 + CLEARANCE * 2 ], "...");
+        cuboid(_x_z_(card_size) + [ 0, _EPSILON, 0 + CLEARANCE * 2 ], anchor = CENTER);
         rotate([ -90, 0, 0 ]) scale([ SPRING_WIDTH, 1, FUNNEL_DEFAULT_MARGIN_Z - CLEARANCE / 2 ])
             cylinder(FUNNEL_DEPTH - _EPSILON, r1 = 1, r2 = 0);
     }
@@ -310,17 +309,17 @@ module card_tab_negative_comp(card_size)
 
     // TODO: implement angled sides?
     negative() translate([ 0, 0, -_z(card_size, 1 / 2) ])
-        aligned_cube([ CARD_TAB_WIDTH, CARD_TAB_HEIGHT, CARD_TAB_DEPTH ], ".+-");
+        cuboid([ CARD_TAB_WIDTH, CARD_TAB_HEIGHT, CARD_TAB_DEPTH ], anchor = FRONT + TOP);
 }
 
 module card_slot_comp(card_size)
 {
     negative() translate([ 0, STICK_OUT_MARGIN_Z, 0 ])
-        aligned_cube(card_size + [ 2 * SPRING_WIDTH, EXTRA_INTERNAL_DEPTH_FOR_EJECTOR, 2 * CLEARANCE ], ".+.");
+        cuboid(card_size + [ 2 * SPRING_WIDTH, EXTRA_INTERNAL_DEPTH_FOR_EJECTOR, 2 * CLEARANCE ], anchor = FRONT);
 
     card_tab_negative_comp(card_size);
 
-    positive() % translate([ 0, STICK_OUT_MARGIN_Z, 0 ]) aligned_cube(card_size, ".+.");
+    positive() % translate([ 0, STICK_OUT_MARGIN_Z, 0 ]) cuboid(card_size, anchor = FRONT);
 }
 
 EJECTOR_LEVER_WIDTH = EJECTOR_AXLE_RADIUS * 4;
@@ -336,7 +335,7 @@ AXLE_INSET_CLEARANCE = 0.6;
 module ejector_axle_hole_snappable_print_supports(card_size)
 {
     duplicate_and_mirror([ 0, 0, 1 ]) translate([ 0, 0, _z(card_size) / 2 + CASE_MARGIN_Z / 2 - AXLE_INSET / 2 ])
-        aligned_cube(
+        cuboid(
             [
                 EJECTOR_AXLE_RADIUS * 1 / 4,
                 (EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2 + 2 * _EPSILON) / 2,
@@ -344,7 +343,7 @@ module ejector_axle_hole_snappable_print_supports(card_size)
                 // _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON + 2 *
                 // _EPSILON
             ],
-            centering_spec = ".+.");
+            anchor = FRONT);
 }
 
 LEVER_PRINT_SUPPORT_WIDTH = 0.5;
@@ -363,13 +362,13 @@ module untranslated_axle_hole(card_size)
                  r = EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_CLEARANCE, center = true);
 
         {
-            aligned_cube(
+            cuboid(
                 [
                     EJECTOR_AXLE_RADIUS * 2 * 2 / 3, EJECTOR_AXLE_RADIUS + CLEARANCE + EJECTOR_AXLE_CLEARANCE,
                     _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 *
                     AXLE_INSET_CLEARANCE
                 ],
-                centering_spec = ".+.");
+                anchor = FRONT);
         }
     }
 }
@@ -379,9 +378,9 @@ module lever_intersection_base(lever_values_struct, rotate_deep_side)
     minkowski()
     {
 
-        aligned_cube(struct_val(lever_values_struct, "lever_core_size") +
-                         [ 0, struct_val(lever_values_struct, "large_value_for_y"), 0 ],
-                     ".+.");
+        cuboid(struct_val(lever_values_struct, "lever_core_size") +
+                   [ 0, struct_val(lever_values_struct, "large_value_for_y"), 0 ],
+               anchor = FRONT);
         cylinder(_EPSILON, r = EJECTOR_LEVER_ROUNDING, center = true);
     }
 }
@@ -390,12 +389,12 @@ module ejector_lever_comp(card_size)
 {
     // Ejector back area
     negative() translate([ _x(card_size, 1 / 2) + SPRING_WIDTH - _EPSILON, _y(card_size) + STICK_OUT_MARGIN_Z, 0 ])
-        aligned_cube(
+        cuboid(
             [
                 WALL_WIDTH_FOR_EJECTOR_CHUTE + 2 * _EPSILON, EXTRA_INTERNAL_DEPTH_FOR_EJECTOR, _z(card_size) + 2 *
                 CLEARANCE
             ],
-            "++.");
+            anchor = LEFT + FRONT);
 
     translate(ejector_axle_center(card_size))
     {
@@ -435,8 +434,8 @@ module ejector_lever_comp(card_size)
             lever_offset_y = -EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_RADIUS / 2;
             translate([ SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE + LEVER_OFFSET, 0, 0 ]) difference()
             {
-                translate([ 0, lever_offset_y, 0 ])
-                    aligned_cube(_x_(card_size, LEVER_SCALE) + _z_(card_size) + [ 0, EJECTOR_AXLE_RADIUS, 0 ], "-..");
+                translate([ 0, lever_offset_y, 0 ]) cuboid(
+                    _x_(card_size, LEVER_SCALE) + _z_(card_size) + [ 0, EJECTOR_AXLE_RADIUS, 0 ], anchor = RIGHT);
 
                 translate(-_x_(card_size, LEVER_SCALE / 2) + [ 0, lever_offset_y, 0 ]) duplicate_and_mirror([ 0, 1, 0 ])
                     duplicate_and_mirror()
@@ -456,9 +455,9 @@ module ejector_lever_comp(card_size)
                         lever_intersection_base(lever_values_struct);
 
                     translate([ 0, EJECTOR_AXLE_RADIUS * 2.5, 0 ])
-                        aligned_cube([ LARGE_VALUE, LARGE_VALUE, LARGE_VALUE ], ".-.");
-                    // translate(lever_offset) aligned_cube(lever_core_size + [ 0, _x(card_size, LEVER_SCALE), 0 ],
-                    // ".+.");``
+                        cuboid([ LARGE_VALUE, LARGE_VALUE, LARGE_VALUE ], anchor = BACK);
+                    // translate(lever_offset) cuboid(lever_core_size + [ 0, _x(card_size, LEVER_SCALE), 0 ],
+                    // anchor = FRONT);``
                 }
             }
         }
@@ -468,17 +467,16 @@ module ejector_lever_comp(card_size)
         {
             union()
             {
-                aligned_cube(
-                    [ LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, LEVER_PRINT_SUPPORT_HEIGHT ], ".+.");
+                cuboid([ LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, LEVER_PRINT_SUPPORT_HEIGHT ],
+                       anchor = FRONT);
 
-                translate([ 0, -1, 0 ]) rotate([ 0, 0, EJECTOR_LEVER_PRINTING_ANGLE ])
-                    duplicate_and_translate([ 5.25, 0, 0 ]) translate([ 5.25, 0, 0 ])
-                        rotate([ 0, 0, -EJECTOR_LEVER_PRINTING_ANGLE ]) aligned_cube(
-                            [ LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, LEVER_PRINT_SUPPORT_HEIGHT ],
-                            ".+.");
+                translate([ 0, -1, 0 ]) rotate([ 0, 0, EJECTOR_LEVER_PRINTING_ANGLE ]) duplicate_and_translate(
+                    [ 5.25, 0, 0 ]) translate([ 5.25, 0, 0 ]) rotate([ 0, 0, -EJECTOR_LEVER_PRINTING_ANGLE ])
+                    cuboid([ LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, LEVER_PRINT_SUPPORT_HEIGHT ],
+                           anchor = FRONT);
             }
             translate([ 0, axle_center_to_back_y + _EPSILON, 0 ])
-                aligned_cube([ LARGE_VALUE, LARGE_VALUE, LARGE_VALUE ], centering_spec = ".+.");
+                cuboid([ LARGE_VALUE, LARGE_VALUE, LARGE_VALUE ], anchor = FRONT);
         }
     }
 }
@@ -516,7 +514,7 @@ module ejector_plunger_front(card_size)
         difference()
         {
             // TODO: refactor these calculations.
-            aligned_cube(
+            cuboid(
                 [
                     WALL_WIDTH_FOR_EJECTOR_CHUTE - FRONT_WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_CHUTE_WIDTH_X -
                         EJECTOR_PLUNGER_FRONT_ROUNDING_RADIUS * 1.5 - CLEARANCE,
@@ -525,9 +523,10 @@ module ejector_plunger_front(card_size)
                     _z(card_size) - EJECTOR_PLUNGER_FRONT_ROUNDING_RADIUS * 2 + EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT - 2 *
                     EJECTOR_PLUNGER_HEAD_CLEARANCE
                 ],
-                "++.");
+                anchor = LEFT + FRONT);
 
-            translate([ 0, 6, 0 ]) rotate([ 0, 0, 60 ]) aligned_cube([ LARGE_VALUE, LARGE_VALUE, LARGE_VALUE ], ".+.");
+            translate([ 0, 6, 0 ]) rotate([ 0, 0, 60 ])
+                cuboid([ LARGE_VALUE, LARGE_VALUE, LARGE_VALUE ], anchor = FRONT);
         }
         rotate([ 90, 0, 0 ]) skew(xz = -20) cylinder(h = EJECTOR_PLUNGER_FRONT_TRANSITION_DEPTH_TO_STEM, r1 = 0,
                                                      r2 = EJECTOR_PLUNGER_FRONT_ROUNDING_RADIUS);
@@ -545,7 +544,7 @@ module ejector_plunger_comp(card_size)
         _x(card_size, 1 / 2) + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE,
         EJECTOR_PLUNGER_RETAINER_DEPTH + EJECTOR_PLUNGER_RETAINER_INSET_DEPTH, 0
     ])
-        aligned_cube(
+        cuboid(
             [
                 EJECTOR_CHUTE_WIDTH_X,
                 _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR + STICK_OUT_MARGIN_Z - EJECTOR_PLUNGER_RETAINER_DEPTH -
@@ -553,22 +552,22 @@ module ejector_plunger_comp(card_size)
                 _z(card_size) + 2 *
                 CLEARANCE
             ],
-            "++.");
+            anchor = LEFT + FRONT);
 
     color("red") negative()
-        translate([ _x(card_size, 1 / 2) + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE, -_EPSILON, 0 ]) aligned_cube(
+        translate([ _x(card_size, 1 / 2) + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE, -_EPSILON, 0 ]) cuboid(
             [ EJECTOR_CHUTE_WIDTH_X, EJECTOR_PLUNGER_RETAINER_INSET_DEPTH + _EPSILON, _z(card_size) + 2 * CLEARANCE ],
-            "++.");
+            anchor = LEFT + FRONT);
 
     // Ejector chute (inner)
     color("yellow") negative()
-        translate([ _x(card_size, 1 / 2) + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE, -_EPSILON, 0 ]) aligned_cube(
+        translate([ _x(card_size, 1 / 2) + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE, -_EPSILON, 0 ]) cuboid(
             [
                 EJECTOR_CHUTE_WIDTH_X, _y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR + STICK_OUT_MARGIN_Z + _EPSILON,
                 _z(card_size) + 2 * CLEARANCE - 2 *
                 EJECTOR_PLUNGER_RETAINERS_HEIGHT_FOR_EACH
             ],
-            "++.");
+            anchor = LEFT + FRONT);
 
     positive() ejector_plunger_front(card_size);
     negative() minkowski()
@@ -593,20 +592,20 @@ module ejector_plunger_comp(card_size)
                 0, EJECTOR_PLUNGER_RETAINER_DEPTH + ejector_plunger_extra_depth + EJECTOR_PLUNGER_RETAINER_INSET_DEPTH,
                 0
             ])
-                aligned_cube(
+                cuboid(
                     [
                         EJECTOR_CHUTE_WIDTH_X - 2 * EJECTOR_PLUNGER_STEM_CLEARANCE,
                         plunger_depth_y - EJECTOR_PLUNGER_RETAINER_DEPTH - ejector_plunger_extra_depth -
                             EJECTOR_PLUNGER_RETAINER_INSET_DEPTH,
                         _z(card_size)
                     ],
-                    "++.");
-            aligned_cube(
+                    anchor = LEFT + FRONT);
+            cuboid(
                 [
                     EJECTOR_CHUTE_WIDTH_X - 2 * EJECTOR_PLUNGER_STEM_CLEARANCE, plunger_depth_y, _z(card_size) -
                     EJECTOR_RETAINERS_TOTAL_HEIGHT
                 ],
-                "++."); // Top and bottom account for half each.
+                anchor = LEFT + FRONT); // Top and bottom account for half each.
         }
         translate([ 0, plunger_depth_y, 0 ]) mirror([ 0, 1, 0 ]) round_bevel_complement(
             height = _z(card_size) + 2 * _EPSILON, radius = EJECTOR_CHUTE_WIDTH_X / 2, center_z = true);
