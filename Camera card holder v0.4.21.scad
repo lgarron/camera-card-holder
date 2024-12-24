@@ -1,7 +1,7 @@
 VERSION_TEXT = "v0.4.21";
 
 DEBUG = false;
-NUM_SLOTS = DEBUG ? 1 : 4;
+NUM_SLOTS = 4;
 DEBUG_SHOW_CROSS_SECTION = DEBUG;
 ROTATE_FOR_PRINTING = !DEBUG;
 
@@ -16,6 +16,7 @@ $fn = 180;
 ## v0.4.21
 
 - Adjust plunger dimensions to accommodate the SD card size.
+- Include 4 output objects: 1 CFexpress, 1 SD card, 4 CFexpress, 4 SD card
 
 ## v0.4.20
 
@@ -205,11 +206,10 @@ TEXT_ENGRAVING_DEPTH = 0.25;
 
 BEVEL_ROUNDING = 1.5;
 
-EXTRA_INTERNAL_DEPTH_FOR_EJECTOR = 7.3;
+EXTRA_BACK_DEPTH_FOR_LEVER = 7.3;
 EJECTOR_PLUNGER_WIDTH_X = 4;
 WALL_WIDTH_FOR_EJECTOR_CHUTE = 3;
 EJECTOR_RETAINERS_TOTAL_HEIGHT = 2; // Top and bottom accoutn for half each.
-LEVER_BACK_EXTRA_DEPTH = 0;
 
 TOTAL_EXTRA_WIDTH_FOR_EJECTOR = WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X;
 
@@ -226,7 +226,7 @@ module casing(card_size, include_bevel_rounding, extra_height = 0)
             card_size +
                 [
                     DEFAULT_MARGIN * 2 - bevel_rounding_value + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X,
-                    CASE_BACK_THICKNESS + STICK_OUT_MARGIN_Z - bevel_rounding_value + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR,
+                    CASE_BACK_THICKNESS + STICK_OUT_MARGIN_Z - bevel_rounding_value + EXTRA_BACK_DEPTH_FOR_LEVER,
                     2 * CASE_MARGIN_Z - bevel_rounding_value +
                     extra_height
                 ],
@@ -259,20 +259,30 @@ module funnel_comp(card_size)
 module air_hole_comp(card_size)
 {
     negative() translate([
-        _x(card_size, -1 / 4), _y(card_size) + STICK_OUT_MARGIN_Z - _EPSILON + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR,
+        _x(card_size, -1 / 4), _y(card_size) + STICK_OUT_MARGIN_Z - _EPSILON + EXTRA_BACK_DEPTH_FOR_LEVER,
         -_z(card_size) / 2 -
         CLEARANCE
     ]) cube([ _x(card_size, 1 / 2), DEFAULT_MARGIN + 2 * _EPSILON, _z(card_size, 1 / 3) ]);
 }
 
-module engraving_comp(card_size)
+module engraving_comp(card_size, card_type_label)
 {
-    // Version engraving
-    negative() translate([
-        0, (DEFAULT_MARGIN + _y(card_size) + STICK_OUT_MARGIN_Z) / 2, _z(card_size, 1 / 2) + CASE_MARGIN_Z -
-        TEXT_ENGRAVING_DEPTH
-    ]) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
-        text(VERSION_TEXT, size = 5, font = "Ubuntu:style=bold", halign = "center", valign = "center");
+    negative() render() union()
+    {
+        // Version engraving
+        translate([
+            0, (DEFAULT_MARGIN + _y(card_size) + STICK_OUT_MARGIN_Z) / 2, _z(card_size, 1 / 2) + CASE_MARGIN_Z -
+            TEXT_ENGRAVING_DEPTH
+        ]) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
+            text(VERSION_TEXT, size = 5, font = "Ubuntu:style=bold", halign = "center", valign = "center");
+
+        // Version engraving
+        translate([
+            0, (DEFAULT_MARGIN + _y(card_size) + STICK_OUT_MARGIN_Z) / 2 - 7, _z(card_size, 1 / 2) + CASE_MARGIN_Z -
+            TEXT_ENGRAVING_DEPTH
+        ]) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
+            text(card_type_label, size = 3, font = "Ubuntu:style=bold", halign = "center", valign = "center");
+    }
 }
 
 LARGE_VALUE = 1000;
@@ -325,7 +335,7 @@ module card_tab_negative_comp(card_size)
 module card_slot_comp(card_size)
 {
     negative() translate([ 0, STICK_OUT_MARGIN_Z, 0 ])
-        cuboid(card_size + [ 2 * SPRING_WIDTH, EXTRA_INTERNAL_DEPTH_FOR_EJECTOR, 2 * CLEARANCE ], anchor = FRONT);
+        cuboid(card_size + [ 2 * SPRING_WIDTH, EXTRA_BACK_DEPTH_FOR_LEVER, 2 * CLEARANCE ], anchor = FRONT);
 
     card_tab_negative_comp(card_size);
 
@@ -400,7 +410,7 @@ module ejector_lever_comp(card_size)
     // Ejector back area
     negative() translate([ _x(card_size, 1 / 2), _y(card_size) + STICK_OUT_MARGIN_Z, 0 ]) cuboid(
         [
-            SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X, EXTRA_INTERNAL_DEPTH_FOR_EJECTOR,
+            SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X, EXTRA_BACK_DEPTH_FOR_LEVER,
             _z(card_size) + 2 *
             CLEARANCE
         ],
@@ -472,7 +482,7 @@ module ejector_lever_comp(card_size)
             }
         }
 
-        axle_center_to_back_y = (_y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR) - _y(ejector_axle_center(card_size));
+        axle_center_to_back_y = (_y(card_size) + EXTRA_BACK_DEPTH_FOR_LEVER) - _y(ejector_axle_center(card_size));
         color("purple") difference()
         {
             union()
@@ -598,7 +608,7 @@ module conditional_mirror(condition, v)
     }
 }
 
-module block_comp(card_size, mirror_x, is_top, is_bottom, engrave, include_bevel_rounding)
+module block_comp(card_size, mirror_x, card_type_label, is_top, is_bottom, engrave, include_bevel_rounding)
 {
     conditional_mirror(mirror_x, [ 1, 0, 0 ])
     {
@@ -621,30 +631,32 @@ module block_comp(card_size, mirror_x, is_top, is_bottom, engrave, include_bevel
 
     if (engrave)
     {
-        engraving_comp(card_size);
+        engraving_comp(card_size, card_type_label);
     }
 }
 
-module block_array_unrounded_comp(n, card_size, include_engraving = true, use_tiling_offset = false)
+module block_array_unrounded_comp(n, card_size, card_type_label, include_engraving = true, use_tiling_offset = false)
 {
-    for (i = [0:NUM_SLOTS - 1])
+    for (i = [0:n - 1])
     {
-        is_top = i == NUM_SLOTS - 1;
+        is_top = i == n - 1;
         is_bottom = i == 0;
         translate([
             (use_tiling_offset && (i % 2 == 1)) ? slot_width_distance_x(card_size) / 4 : 0, 0,
             i * (slot_bottom_distance_z(card_size))
-        ]) block_comp(card_size, i % 2 == 1, is_top, is_bottom, include_engraving && is_top, false);
+        ]) block_comp(card_size, i % 2 == 1, card_type_label, is_top, is_bottom, include_engraving && is_top, false);
     }
 }
 
-module block_array(n, card_size, include_engraving = true, use_tiling_offset = false)
+module block_array(n, card_size, card_type_label, include_engraving = true, use_tiling_offset = false)
 {
-    render() compose()
+    render() translate(DEBUG ? [ 0, 0, 0 ]
+                             : -[ 0, _y(card_size) + EXTRA_BACK_DEPTH_FOR_LEVER + CASE_BACK_THICKNESS, 0 ]) compose()
     {
         render() carvable() difference()
         {
-            render() block_array_unrounded_comp(n = n, card_size = card_size, $compose_mode = "carvable");
+            render() block_array_unrounded_comp(n = n, card_size = card_size, card_type_label = card_type_label,
+                                                $compose_mode = "carvable");
 
             color("orange") render() minkowski_shell()
             {
@@ -653,16 +665,30 @@ module block_array(n, card_size, include_engraving = true, use_tiling_offset = f
                 cube(BEVEL_ROUNDING, center = true);
             }
         }
-        render() negative() block_array_unrounded_comp(n = n, card_size = card_size, $compose_mode = "negative");
-        render() positive() block_array_unrounded_comp(n = n, card_size = card_size, $compose_mode = "positive");
+        render() negative() block_array_unrounded_comp(n = n, card_size = card_size, card_type_label = card_type_label,
+                                                       $compose_mode = "negative");
+        render() positive() block_array_unrounded_comp(n = n, card_size = card_size, card_type_label = card_type_label,
+                                                       $compose_mode = "positive");
     }
 }
 
 // TODO: Fix tab negative placement.
-module double_block_array(n, card_size)
+module double_block_array(n, card_size, card_type_label)
 {
-    translate([ slot_width_distance_x(card_size), 0, 0 ]) block_array(n, card_size, false, true);
+    translate([ slot_width_distance_x(card_size), 0, 0 ]) block_array(n, card_size, card_type_label, false, true);
     block_array(n, card_size, true, true);
 }
 
-rotate([ ROTATE_FOR_PRINTING ? -90 : 0, 0, 0 ]) render() block_array(NUM_SLOTS, CFEXPRESS_B_CARD_SIZE);
+tx = [ 30, 0, 0 ];
+ty = [ 0, 20, 0 ];
+
+translate(-tx + ty) rotate([ ROTATE_FOR_PRINTING ? -90 : 0, 0, 0 ]) render()
+    block_array(1, CFEXPRESS_B_CARD_SIZE, "CFexpress B");
+translate(tx + ty) rotate([ ROTATE_FOR_PRINTING ? -90 : 0, 0, 0 ]) render() block_array(1, SD_CARD_SIZE, "SD Card");
+if (!DEBUG)
+{
+    translate(-tx - ty) rotate([ ROTATE_FOR_PRINTING ? -90 : 0, 0, 0 ]) render()
+        block_array(NUM_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B");
+    translate(tx - ty) rotate([ ROTATE_FOR_PRINTING ? -90 : 0, 0, 0 ]) render()
+        block_array(NUM_SLOTS, SD_CARD_SIZE, "SD Card");
+}
