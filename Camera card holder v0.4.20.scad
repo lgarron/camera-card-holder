@@ -468,7 +468,7 @@ module ejector_lever_comp(card_size)
         }
 
         axle_center_to_back_y = (_y(card_size) + EXTRA_INTERNAL_DEPTH_FOR_EJECTOR) - _y(ejector_axle_center(card_size));
-        difference()
+        color("purple") difference()
         {
             union()
             {
