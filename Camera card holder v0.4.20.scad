@@ -580,7 +580,7 @@ module block_comp(card_size, mirror_x, is_top, is_bottom, engrave, include_bevel
 
             card_slot_comp(card_size);
             ejector_comp(card_size);
-            springs_comp(card_size);
+            color("blue") springs_comp(card_size);
 
             if (DEBUG_SHOW_CROSS_SECTION)
             {
