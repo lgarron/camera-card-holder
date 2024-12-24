@@ -16,6 +16,7 @@ $fn = 180;
 ## v0.4.20
 
 - Use parametric calculations for the plunger.
+- Avoid cutting the plunger when extended.
 
 ## v0.4.19
 
@@ -532,7 +533,7 @@ function plunger_travel_distance_y(card_size) = _y(plunger_back_rounding_center(
 // the plunger.
 module ejector_plunger_comp(card_size)
 {
-#negative() minkowski()
+    negative() minkowski()
     {
         ejector_plunger_positive(card_size);
         translate([ 0, EJECTOR_PLUNGER_BACK_CLEARANCE, 0 ]) rotate([ 90, 0, 0 ])
@@ -596,30 +597,36 @@ module block_comp(card_size, mirror_x, is_top, is_bottom, engrave, include_bevel
     }
 }
 
+module block_array_unrounded_comp(n, card_size, include_engraving = true, use_tiling_offset = false)
+{
+    for (i = [0:NUM_SLOTS - 1])
+    {
+        is_top = i == NUM_SLOTS - 1;
+        is_bottom = i == 0;
+        translate([
+            (use_tiling_offset && (i % 2 == 1)) ? slot_width_distance_x(card_size) / 4 : 0, 0,
+            i * (slot_bottom_distance_z(card_size))
+        ]) block_comp(card_size, i % 2 == 1, is_top, is_bottom, include_engraving && is_top, false);
+    }
+}
+
 module block_array(n, card_size, include_engraving = true, use_tiling_offset = false)
 {
-    difference()
+    compose()
     {
-        render() compose() union()
+        carvable() difference()
         {
-            for (i = [0:NUM_SLOTS - 1])
+            render() block_array_unrounded_comp(n = n, card_size = card_size, $compose_mode = "carvable");
+
+            color("orange") render() minkowski_shell()
             {
-                is_top = i == NUM_SLOTS - 1;
-                is_bottom = i == 0;
-                translate([
-                    (use_tiling_offset && (i % 2 == 1)) ? slot_width_distance_x(card_size) / 4 : 0, 0,
-                    i * (slot_bottom_distance_z(card_size))
-                ]) block_comp(card_size, i % 2 == 1, is_top, is_bottom, include_engraving && is_top, false);
+                translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ])
+                    casing(card_size, BEVEL_ROUNDING, extra_height = (n - 1) * slot_bottom_distance_z(card_size));
+                cube(BEVEL_ROUNDING, center = true);
             }
         }
-
-        // TODO: this cuts the plunger when it's extended.
-        color("orange") render() minkowski_shell()
-        {
-            translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ])
-                casing(card_size, BEVEL_ROUNDING, extra_height = (n - 1) * slot_bottom_distance_z(card_size));
-            cube(BEVEL_ROUNDING, center = true);
-        }
+        negative() block_array_unrounded_comp(n = n, card_size = card_size, $compose_mode = "negative");
+        positive() block_array_unrounded_comp(n = n, card_size = card_size, $compose_mode = "positive");
     }
 }
 
