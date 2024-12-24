@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.22
+
+- Adjust SD card size.
+
 ## v0.4.21
 
 - Adjust plunger dimensions to accommodate the SD card size.
@@ -189,7 +193,7 @@ include <./node_modules/scad/xyz.scad>
 CFEXPRESS_B_CARD_SIZE = [ 29.60, 38.55, 3.85 ];
 // CFEXPRESS_B_UPPER_INDENT_SIZE = [ 1.00, 33.65, 0.55 ];
 
-SD_CARD_SIZE = [ 24.5, 32.0, 2.1 ];
+SD_CARD_SIZE = [ 24, 32.0, 2.1 ];
 // SD_CARD_LOWER_INDENT_SIZE = [ 1.00, 33.65, 0.70 ];
 
 CLEARANCE = 0.15;
