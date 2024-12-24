@@ -17,6 +17,7 @@ $fn = 180;
 
 - Adjust SD card size.
 - Remove the card tab negative from SD cards.
+- Add extra height in the middle (on both sides) for sticker labels.
 
 ## v0.4.21
 
@@ -334,10 +335,18 @@ module card_tab_negative_comp(card_size, card_tab_negative_size)
     negative() translate([ 0, 0, -_z(card_size, 1 / 2) ]) cuboid(card_tab_negative_size, anchor = FRONT + TOP);
 }
 
+EXTRA_HEIGHT_EACH_SIDE_FOR_LABEL = 0.1;
+
 module card_slot_comp(card_size, card_tab_negative_size)
 {
     negative() translate([ 0, STICK_OUT_MARGIN_Z, 0 ])
         cuboid(card_size + [ 2 * SPRING_WIDTH, EXTRA_BACK_DEPTH_FOR_LEVER, 2 * CLEARANCE ], anchor = FRONT);
+
+    // Add extra height in the middle (on both sides) for sticker labels.
+    negative() translate([ 0, STICK_OUT_MARGIN_Z, 0 ]) cuboid(
+        scale_entries_independently(card_size, [ 2 / 3, 1, 1 ]) +
+            [ 2 * SPRING_WIDTH, EXTRA_BACK_DEPTH_FOR_LEVER, 2 * CLEARANCE + 2 * EXTRA_HEIGHT_EACH_SIDE_FOR_LABEL ],
+        anchor = FRONT);
 
     if (is_list(card_tab_negative_size))
     {
