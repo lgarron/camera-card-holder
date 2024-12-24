@@ -17,6 +17,7 @@ $fn = 180;
 
 - Use parametric calculations for the plunger.
 - Avoid cutting the plunger when extended.
+- Increase the vertical height of the plunger front.
 
 ## v0.4.19
 
@@ -498,8 +499,9 @@ module skew(xy = 0, xz = 0, yx = 0, yz = 0, zx = 0, zy = 0)
     multmatrix(matrix) children();
 }
 
-EJECTOR_PLUNGER_FRONT_EXTRA_WIDTH = 2;
-TODO = 10;
+EJECTOR_RETAINER_EXTRA_WIDTH = 2;
+PLUNGER_RETAINER_CORE_DEPTH = 10;
+PLUNGER_RETAINER_BACK_SLOPE_ANGLE = 60;
 
 function plunger_back_rounding_center(card_size) = [
     1 / 2 * (_x(card_size) + EJECTOR_PLUNGER_WIDTH_X + 2 * (SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE)),
@@ -509,18 +511,40 @@ function plunger_back_rounding_center(card_size) = [
             (8 * sqrt(3))
 ];
 
-module ejector_plunger_positive(card_size)
-{
-    translate(_x_(card_size, 1 / 2) + [ SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X, 0, 0 ])
-        cuboid(_z_(card_size) + [ EJECTOR_PLUNGER_WIDTH_X, _y(plunger_back_rounding_center(card_size)), 0 ],
-               anchor = RIGHT + FRONT);
+PLUNGER_ROUNDING_FN = 32; // If this value is higher, render times go *waaaay* up.
 
-    plunger_hook_size = _z_(card_size) + [ EJECTOR_PLUNGER_FRONT_EXTRA_WIDTH, TODO, 0 ];
-    duplicate_and_translate(_y_(card_size, 1 / 2))
-        translate(_x_(card_size) / 2 + [ SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE, 0, 0 ]) difference()
+module plunger_retainer(card_size, extra_height)
+{
+    plunger_hook_size = _z_(card_size) + [ EJECTOR_PLUNGER_WIDTH_X, PLUNGER_RETAINER_CORE_DEPTH, 0 ];
+    render()
+        translate(_x_(card_size) / 2 + [ SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X, 0, 0 ])
+            render() minkowski()
     {
-        cuboid(plunger_hook_size, anchor = RIGHT + FRONT);
-        translate(_y_(plunger_hook_size)) rotate([ 0, 0, 60 ]) cuboid(LARGE_VALUE, anchor = FRONT);
+        render() cuboid(plunger_hook_size, anchor = RIGHT + FRONT);
+
+        render() translate([ -EJECTOR_RETAINER_EXTRA_WIDTH / 2, 0, 0 ])
+            skew(xy = 90 - PLUNGER_RETAINER_BACK_SLOPE_ANGLE) render()
+                scale([ EJECTOR_RETAINER_EXTRA_WIDTH / 2, 1, extra_height / 2 ]) rotate([ -90, 0, 0 ])
+                    cylinder(h = tan(PLUNGER_RETAINER_BACK_SLOPE_ANGLE) * EJECTOR_RETAINER_EXTRA_WIDTH / 2, r1 = 1,
+                             r2 = 0, $fn = PLUNGER_ROUNDING_FN);
+    }
+}
+
+module ejector_plunger(card_size)
+{
+    render() union()
+    {
+        translate(_x_(card_size, 1 / 2) +
+                  [ SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X, 0, 0 ])
+            cuboid(_z_(card_size) + [ EJECTOR_PLUNGER_WIDTH_X, _y(plunger_back_rounding_center(card_size)), 0 ],
+                   anchor = RIGHT + FRONT);
+
+        plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT);
+        render() translate(_y_(card_size, 1 / 2)) intersection()
+        {
+            plunger_retainer(card_size, _EPSILON);
+            cuboid([ LARGE_VALUE, LARGE_VALUE, _z(card_size) ], anchor = LEFT + FRONT);
+        }
     }
 }
 
@@ -533,17 +557,17 @@ function plunger_travel_distance_y(card_size) = _y(plunger_back_rounding_center(
 // the plunger.
 module ejector_plunger_comp(card_size)
 {
-    negative() minkowski()
+    negative() render() minkowski()
     {
-        ejector_plunger_positive(card_size);
-        translate([ 0, EJECTOR_PLUNGER_BACK_CLEARANCE, 0 ]) rotate([ 90, 0, 0 ])
+        render() ejector_plunger(card_size);
+        render() translate([ 0, EJECTOR_PLUNGER_BACK_CLEARANCE, 0 ]) rotate([ 90, 0, 0 ])
             cylinder(h = plunger_travel_distance_y(card_size) + EJECTOR_PLUNGER_BACK_CLEARANCE,
                      r = EJECTOR_PLUNGER_ANNULAR_CLEARANCE);
     };
-    positive() translate(PLUNGER_PUSHED_IN ? [ 0, 0, 0 ] : [ 0, -plunger_travel_distance_y(card_size), 0 ])
+    positive() render() translate(PLUNGER_PUSHED_IN ? [ 0, 0, 0 ] : [ 0, -plunger_travel_distance_y(card_size), 0 ])
         color("green") union()
     {
-        ejector_plunger_positive(card_size);
+        ejector_plunger(card_size);
 
         translate(plunger_back_rounding_center(card_size))
             cylinder(h = _z(card_size), r = EJECTOR_PLUNGER_WIDTH_X / 2, center = true);
@@ -612,9 +636,9 @@ module block_array_unrounded_comp(n, card_size, include_engraving = true, use_ti
 
 module block_array(n, card_size, include_engraving = true, use_tiling_offset = false)
 {
-    compose()
+    render() compose()
     {
-        carvable() difference()
+        render() carvable() difference()
         {
             render() block_array_unrounded_comp(n = n, card_size = card_size, $compose_mode = "carvable");
 
@@ -625,8 +649,8 @@ module block_array(n, card_size, include_engraving = true, use_tiling_offset = f
                 cube(BEVEL_ROUNDING, center = true);
             }
         }
-        negative() block_array_unrounded_comp(n = n, card_size = card_size, $compose_mode = "negative");
-        positive() block_array_unrounded_comp(n = n, card_size = card_size, $compose_mode = "positive");
+        render() negative() block_array_unrounded_comp(n = n, card_size = card_size, $compose_mode = "negative");
+        render() positive() block_array_unrounded_comp(n = n, card_size = card_size, $compose_mode = "positive");
     }
 }
 
