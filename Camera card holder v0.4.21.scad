@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.21
+
+- Adjust plunger dimensions to accommodate the SD card size.
+
 ## v0.4.20
 
 - Use parametric calculations for the plunger.
@@ -499,7 +503,6 @@ module skew(xy = 0, xz = 0, yx = 0, yz = 0, zx = 0, zy = 0)
 }
 
 EJECTOR_RETAINER_EXTRA_WIDTH = 2;
-PLUNGER_RETAINER_CORE_DEPTH = 10;
 PLUNGER_RETAINER_BACK_SLOPE_ANGLE = 60;
 
 function plunger_back_rounding_center(card_size) = [
@@ -514,7 +517,9 @@ PLUNGER_ROUNDING_FN = 32; // If this value is higher, render times go *waaaay* u
 
 module plunger_retainer(card_size, extra_height)
 {
-    plunger_hook_size = _z_(card_size) + [ EJECTOR_PLUNGER_WIDTH_X, PLUNGER_RETAINER_CORE_DEPTH, 0 ];
+    depth = _y(SD_CARD_SIZE, 1 / 5);
+
+    plunger_hook_size = _z_(card_size) + [ EJECTOR_PLUNGER_WIDTH_X, depth, 0 ];
     render()
         translate(_x_(card_size) / 2 + [ SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X, 0, 0 ])
             render() minkowski()
@@ -547,7 +552,7 @@ module ejector_plunger(card_size)
     }
 }
 
-EJECTOR_PLUNGER_BACK_CLEARANCE = 2;
+EJECTOR_PLUNGER_BACK_CLEARANCE = 1;
 
 function plunger_travel_distance_y(card_size) = _y(plunger_back_rounding_center(card_size)) -
                                                 _y(card_size) + EJECTOR_PLUNGER_WIDTH_X / 2;
