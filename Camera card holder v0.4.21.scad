@@ -1,4 +1,4 @@
-VERSION_TEXT = "v0.4.20";
+VERSION_TEXT = "v0.4.21";
 
 DEBUG = false;
 NUM_SLOTS = DEBUG ? 1 : 4;
