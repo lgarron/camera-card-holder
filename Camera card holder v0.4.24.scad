@@ -13,6 +13,10 @@ $fn = 180;
 
 /*
 
+## v0.4.24
+
+- Adjust the lever angle to 40°.
+
 ## v0.4.23
 
 - Add a torque smoothing curve to the lever for easier smooth ejection (without shooting out the card).
@@ -218,9 +222,9 @@ TEXT_ENGRAVING_DEPTH = 0.25;
 
 BEVEL_ROUNDING = 1.5;
 
-EXTRA_BACK_DEPTH_FOR_LEVER = 7.3;
+EXTRA_BACK_DEPTH_FOR_LEVER = 7.5;
 EJECTOR_PLUNGER_WIDTH_X = 4;
-WALL_WIDTH_FOR_EJECTOR_CHUTE = 3;
+WALL_WIDTH_FOR_EJECTOR_CHUTE = 2;
 EJECTOR_RETAINERS_TOTAL_HEIGHT = 2; // Top and bottom accoutn for half each.
 
 TOTAL_EXTRA_WIDTH_FOR_EJECTOR = WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X;
@@ -255,7 +259,7 @@ EJECTOR_AXLE_CLEARANCE = 0.15;
 
 // We don't include `y` clearance, since that ensures a snug state when the card is in, and the lever is not
 // touching near the spring while printed.
-function ejector_axle_center(card_size) = _x_y_(card_size, [ 0.375, 1, 0 ]) +
+function ejector_axle_center(card_size) = _x_y_(card_size, [ 0.45, 1, 0 ]) +
                                           [ 0, STICK_OUT_MARGIN_Z + EJECTOR_AXLE_RADIUS, 0 ];
 
 module funnel_comp(card_size)
@@ -363,7 +367,7 @@ module card_slot_comp(card_size, card_tab_negative_size)
 EJECTOR_LEVER_WIDTH = EJECTOR_AXLE_RADIUS * 4;
 EJECTOR_LEVER_OFFSET_ANGLED_Y = EJECTOR_AXLE_RADIUS;
 EJECTOR_LEVER_ROUNDING = EJECTOR_AXLE_RADIUS / 2;
-EJECTOR_LEVER_PRINTING_ANGLE = PLUNGER_PUSHED_IN ? 30 : 0;
+EJECTOR_LEVER_PRINTING_ANGLE = PLUNGER_PUSHED_IN ? 40 : 0;
 
 EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT = CASE_MARGIN_Z * 1 / 2;
 
@@ -388,7 +392,7 @@ LEVER_PRINT_SUPPORT_WIDTH = 0.5;
 LEVER_PRINT_SUPPORT_HEIGHT = 2;
 
 LEVER_SCALE = 1.5;
-LEVER_OFFSET = 2;
+LEVER_OFFSET = 1;
 
 module untranslated_axle_hole(card_size)
 {
@@ -540,15 +544,17 @@ module skew(xy = 0, xz = 0, yx = 0, yz = 0, zx = 0, zy = 0)
     multmatrix(matrix) children();
 }
 
-EJECTOR_RETAINER_EXTRA_WIDTH = 2;
+EJECTOR_RETAINER_EXTRA_WIDTH = WALL_WIDTH_FOR_EJECTOR_CHUTE - 1;
 PLUNGER_RETAINER_BACK_SLOPE_ANGLE = 60;
+
+function sec(theta) = 1 / cos(theta);
 
 function plunger_back_rounding_center(card_size) = [
     1 / 2 * (_x(card_size) + EJECTOR_PLUNGER_WIDTH_X + 2 * (SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE)),
-    _y(card_size) + EJECTOR_AXLE_RADIUS - 1 / 4 * sqrt(3) * (2 * EJECTOR_AXLE_RADIUS + EJECTOR_PLUNGER_WIDTH_X) +
-        (_x(card_size) - 4 * EJECTOR_AXLE_RADIUS + 2 * EJECTOR_PLUNGER_WIDTH_X + 8 * SPRING_WIDTH +
-         8 * WALL_WIDTH_FOR_EJECTOR_CHUTE) /
-            (8 * sqrt(3))
+    _y(card_size) + EJECTOR_AXLE_RADIUS -
+        1 / 2 * (2 * EJECTOR_AXLE_RADIUS + EJECTOR_PLUNGER_WIDTH_X) * sec(EJECTOR_LEVER_PRINTING_ANGLE) +
+        (_x(card_size) / 20 + EJECTOR_PLUNGER_WIDTH_X / 2 + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE) *
+            tan(EJECTOR_LEVER_PRINTING_ANGLE)
 ];
 
 PLUNGER_ROUNDING_FN = 32; // If this value is higher, render times go *waaaay* up.
