@@ -13,6 +13,11 @@ $fn = 180;
 
 /*
 
+## v0.4.25
+
+- Stack cards vertically.
+- Increase ejector plunger front size.
+
 ## v0.4.24
 
 - Adjust the lever angle to 40°.
@@ -220,7 +225,7 @@ SPRING_WIDTH = 2;
 
 TEXT_ENGRAVING_DEPTH = 0.25;
 
-BEVEL_ROUNDING = 1.5;
+BEVEL_ROUNDING = 1;
 
 EXTRA_BACK_DEPTH_FOR_LEVER = 7.5;
 EJECTOR_PLUNGER_WIDTH_X = 4;
@@ -233,20 +238,21 @@ function slot_bottom_distance_z(card_size) = _z(card_size) + CASE_MARGIN_Z + CLE
 function slot_width_distance_x(card_size) = _x(card_size) + 2 * SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE
                                             + EJECTOR_PLUNGER_WIDTH_X + CASE_MARGIN_Z;
 
-module casing(card_size, include_bevel_rounding, extra_height = 0)
+module casing(card_size, include_bevel_rounding, extra_height = 0, full_design_has_multiple_slots = false)
 {
-    translate([ TOTAL_EXTRA_WIDTH_FOR_EJECTOR / 2, 0, extra_height / 2 ]) minkowski()
+    translate([ full_design_has_multiple_slots ? 0 : TOTAL_EXTRA_WIDTH_FOR_EJECTOR / 2, 0, extra_height / 2 ])
+        minkowski()
     {
         bevel_rounding_value = (include_bevel_rounding ? 2 * BEVEL_ROUNDING : 0);
-        cuboid(
-            card_size +
-                [
-                    DEFAULT_MARGIN * 2 - bevel_rounding_value + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X,
-                    CASE_BACK_THICKNESS + STICK_OUT_MARGIN_Z - bevel_rounding_value + EXTRA_BACK_DEPTH_FOR_LEVER,
-                    2 * CASE_MARGIN_Z - bevel_rounding_value +
-                    extra_height
-                ],
-            anchor = FRONT);
+        cuboid(card_size +
+                   [
+                       DEFAULT_MARGIN * 2 - bevel_rounding_value +
+                           TOTAL_EXTRA_WIDTH_FOR_EJECTOR * (full_design_has_multiple_slots ? 2 : 1),
+                       CASE_BACK_THICKNESS + STICK_OUT_MARGIN_Z - bevel_rounding_value + EXTRA_BACK_DEPTH_FOR_LEVER,
+                       2 * CASE_MARGIN_Z - bevel_rounding_value +
+                       extra_height
+                   ],
+               anchor = FRONT);
         if (include_bevel_rounding)
         {
             translate([ 0, BEVEL_ROUNDING, 0 ]) sphere(BEVEL_ROUNDING);
@@ -559,14 +565,12 @@ function plunger_back_rounding_center(card_size) = [
 
 PLUNGER_ROUNDING_FN = 32; // If this value is higher, render times go *waaaay* up.
 
-module plunger_retainer(card_size, extra_height)
+module plunger_retainer(card_size, extra_height, subtract_width = 0)
 {
     depth = _y(SD_CARD_SIZE, 1 / 5);
 
-    plunger_hook_size = _z_(card_size) + [ EJECTOR_PLUNGER_WIDTH_X, depth, 0 ];
-    render()
-        translate(_x_(card_size) / 2 + [ SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X, 0, 0 ])
-            render() minkowski()
+    plunger_hook_size = _z_(card_size) + [ EJECTOR_PLUNGER_WIDTH_X - subtract_width, depth, 0 ];
+    render() translate(_x_(card_size) / 2 + [ SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR, 0, 0 ]) render() minkowski()
     {
         render() cuboid(plunger_hook_size, anchor = RIGHT + FRONT);
 
@@ -578,7 +582,7 @@ module plunger_retainer(card_size, extra_height)
     }
 }
 
-module ejector_plunger(card_size)
+module ejector_plunger(card_size, is_top, is_bottom)
 {
     render() union()
     {
@@ -588,6 +592,19 @@ module ejector_plunger(card_size)
                    anchor = RIGHT + FRONT);
 
         plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT);
+        render() difference()
+        {
+            plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT + _z(card_size, 1), subtract_width = 1);
+            if (is_top)
+            {
+                cuboid(LARGE_VALUE, anchor = BOTTOM);
+            }
+            if (is_bottom)
+            {
+                cuboid(LARGE_VALUE, anchor = TOP);
+            }
+        }
+
         render() translate(_y_(card_size, 1 / 2)) intersection()
         {
             plunger_retainer(card_size, _EPSILON);
@@ -603,11 +620,11 @@ function plunger_travel_distance_y(card_size) = _y(plunger_back_rounding_center(
 
 // TODO: With current dimensions, the lever doesn't extend *quite* far enough in the `x` direction to perfectly contact
 // the plunger.
-module ejector_plunger_comp(card_size)
+module ejector_plunger_comp(card_size, is_top, is_bottom)
 {
     negative() render() minkowski()
     {
-        render() ejector_plunger(card_size);
+        render() ejector_plunger(card_size, is_top, is_bottom);
         render() translate([ 0, EJECTOR_PLUNGER_BACK_CLEARANCE, 0 ]) rotate([ 90, 0, 0 ])
             cylinder(h = plunger_travel_distance_y(card_size) + EJECTOR_PLUNGER_BACK_CLEARANCE,
                      r = EJECTOR_PLUNGER_ANNULAR_CLEARANCE);
@@ -615,20 +632,20 @@ module ejector_plunger_comp(card_size)
     positive() render() translate(PLUNGER_PUSHED_IN ? [ 0, 0, 0 ] : [ 0, -plunger_travel_distance_y(card_size), 0 ])
         color("green") union()
     {
-        ejector_plunger(card_size);
+        ejector_plunger(card_size, is_top, is_bottom);
 
         translate(plunger_back_rounding_center(card_size))
             cylinder(h = _z(card_size), r = EJECTOR_PLUNGER_WIDTH_X / 2, center = true);
     }
 }
 
-module ejector_comp(card_size)
+module ejector_comp(card_size, is_top, is_bottom)
 {
     ejector_lever_comp(card_size);
-    ejector_plunger_comp(card_size);
+    ejector_plunger_comp(card_size, is_top, is_bottom);
 }
 
-ARRAY_CENTERING_OFFSET_X = -(WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X) / 2;
+ARRAY_CENTERING_OFFSET_X = 0; //-(WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X) / 2;
 
 module conditional_mirror(condition, v)
 {
@@ -643,16 +660,17 @@ module conditional_mirror(condition, v)
 }
 
 module block_comp(card_size, mirror_x, card_type_label, card_tab_negative_size, is_top, is_bottom, engrave,
-                  include_bevel_rounding)
+                  include_bevel_rounding, full_design_has_multiple_slots)
 {
     conditional_mirror(mirror_x, [ 1, 0, 0 ])
     {
         translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ])
         {
-            carvable() casing(card_size, include_bevel_rounding);
+            carvable() casing(card_size, include_bevel_rounding,
+                              full_design_has_multiple_slots = full_design_has_multiple_slots);
 
             card_slot_comp(card_size, card_tab_negative_size);
-            ejector_comp(card_size);
+            ejector_comp(card_size, is_top, is_bottom);
             color("blue") springs_comp(card_size);
 
             if (DEBUG_SHOW_CROSS_SECTION)
@@ -671,7 +689,7 @@ module block_comp(card_size, mirror_x, card_type_label, card_tab_negative_size, 
 }
 
 module block_array_unrounded_comp(n, card_size, card_type_label, card_tab_negative_size, include_engraving = true,
-                                  use_tiling_offset = false)
+                                  use_tiling_offset = false, full_design_has_multiple_slots)
 {
     for (i = [0:n - 1])
     {
@@ -681,35 +699,40 @@ module block_array_unrounded_comp(n, card_size, card_type_label, card_tab_negati
             (use_tiling_offset && (i % 2 == 1)) ? slot_width_distance_x(card_size) / 4 : 0, 0,
             i * (slot_bottom_distance_z(card_size))
         ]) block_comp(card_size, i % 2 == 1, card_type_label, card_tab_negative_size, is_top, is_bottom,
-                      include_engraving && is_top, false);
+                      include_engraving && is_top, false, full_design_has_multiple_slots);
     }
 }
 
 module block_array(n, card_size, card_type_label, card_tab_negative_size, include_engraving = true,
-                   use_tiling_offset = false)
+                   use_tiling_offset = false, full_design_has_multiple_slots)
 {
+    full_design_has_multiple_slots = n > 1;
     render() translate(DEBUG ? [ 0, 0, 0 ]
                              : -[ 0, _y(card_size) + EXTRA_BACK_DEPTH_FOR_LEVER + CASE_BACK_THICKNESS, 0 ]) compose()
     {
         render() carvable() difference()
         {
-            render() block_array_unrounded_comp(n = n, card_size = card_size,
-                                                card_tab_negative_size = card_tab_negative_size,
-                                                card_type_label = card_type_label, $compose_mode = "carvable");
+            render() block_array_unrounded_comp(
+                n = n, card_size = card_size, card_tab_negative_size = card_tab_negative_size,
+                card_type_label = card_type_label, full_design_has_multiple_slots = full_design_has_multiple_slots,
+                $compose_mode = "carvable");
 
             color("orange") render() minkowski_shell()
             {
-                translate([ ARRAY_CENTERING_OFFSET_X, 0, 0 ])
-                    casing(card_size, BEVEL_ROUNDING, extra_height = (n - 1) * slot_bottom_distance_z(card_size));
+                translate([ ARRAY_CENTERING_OFFSET_X * (full_design_has_multiple_slots ? 1 : 1 / 2), 0, 0 ])
+                    casing(card_size, BEVEL_ROUNDING, extra_height = (n - 1) * slot_bottom_distance_z(card_size),
+                           full_design_has_multiple_slots = full_design_has_multiple_slots);
                 cube(BEVEL_ROUNDING, center = true);
             }
         }
-        render() negative()
-            block_array_unrounded_comp(n = n, card_size = card_size, card_tab_negative_size = card_tab_negative_size,
-                                       card_type_label = card_type_label, $compose_mode = "negative");
-        render() positive()
-            block_array_unrounded_comp(n = n, card_size = card_size, card_tab_negative_size = card_tab_negative_size,
-                                       card_type_label = card_type_label, $compose_mode = "positive");
+        render() negative() block_array_unrounded_comp(
+            n = n, card_size = card_size, card_tab_negative_size = card_tab_negative_size,
+            card_type_label = card_type_label, full_design_has_multiple_slots = full_design_has_multiple_slots,
+            $compose_mode = "negative");
+        render() positive() block_array_unrounded_comp(
+            n = n, card_size = card_size, card_tab_negative_size = card_tab_negative_size,
+            card_type_label = card_type_label, full_design_has_multiple_slots = full_design_has_multiple_slots,
+            $compose_mode = "positive");
     }
 }
 
@@ -720,7 +743,7 @@ translate(-tx + ty) rotate([ ROTATE_FOR_PRINTING ? -90 : 0, 0, 0 ]) render()
     block_array(1, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE);
 translate(tx + ty) rotate([ ROTATE_FOR_PRINTING ? -90 : 0, 0, 0 ]) render()
     block_array(1, SD_CARD_SIZE, "SD Card", false);
-if (!DEBUG)
+// if (!DEBUG)
 {
     translate(-tx - ty) rotate([ ROTATE_FOR_PRINTING ? -90 : 0, 0, 0 ]) render()
         block_array(NUM_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE);
