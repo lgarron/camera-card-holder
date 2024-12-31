@@ -1,0 +1,631 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     23987,        623]
+NotebookOptionsPosition[     21124,        566]
+NotebookOutlinePosition[     21520,        582]
+CellTagsIndexPosition[     21477,        579]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Calculations", "Section",
+ CellChangeTimes->{{3.9440139861872673`*^9, 
+  3.9440139870364723`*^9}},ExpressionUUID->"9daf3899-0028-4b67-80fb-\
+72f0d47ef59e"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", 
+   RowBox[{
+    RowBox[{"\[Theta]", "=", 
+     RowBox[{"30", "\[Degree]"}]}], ";"}], "*)"}], "\[IndentingNewLine]", 
+  RowBox[{"(*", 
+   RowBox[{
+    RowBox[{"\[Theta]", "=", 
+     RowBox[{"40", "\[Degree]"}]}], ";"}], "*)"}], "\[IndentingNewLine]", 
+  RowBox[{"(*", 
+   RowBox[{
+    RowBox[{"cardSizeXY", "=", 
+     RowBox[{"{", 
+      RowBox[{"29.60", ",", "38.55"}], "}"}]}], ";"}], "*)"}], 
+  "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"cardSizeXY", "=", 
+     RowBox[{"{", 
+      RowBox[{"cardSizeX", ",", "cardSizeY"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{
+     RowBox[{"ejectorAxleRadius", "=", "2"}], ";"}], "*)"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"ejectorAxleCenter", "=", 
+     RowBox[{
+      RowBox[{"cardSizeXY", "*", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"9", "/", "20"}], ",", "1"}], "}"}]}], "+", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "ejectorAxleRadius"}], "}"}]}]}], ";"}]}]}]], "Input",\
+
+ CellChangeTimes->{{3.9440120420258713`*^9, 3.9440120524932823`*^9}, {
+   3.944012198832265*^9, 3.944012199632639*^9}, {3.944012259918316*^9, 
+   3.944012297964418*^9}, {3.944012362250944*^9, 3.944012373434533*^9}, {
+   3.9440124195474377`*^9, 3.9440124207530518`*^9}, {3.944014379736321*^9, 
+   3.944014414448152*^9}, {3.944014479502221*^9, 3.9440144810166492`*^9}, {
+   3.9440148958214197`*^9, 3.944014896582047*^9}, {3.9446066076964207`*^9, 
+   3.944606607733243*^9}, {3.944606642161235*^9, 3.944606661353496*^9}, 
+   3.944606773325614*^9, 3.944624884824769*^9},
+ CellLabel->"In[3]:=",ExpressionUUID->"6d08a17c-4b98-4cab-a00d-9b9d2d64bfa7"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"leverBottom", "=", 
+  RowBox[{
+   RowBox[{"TranslationTransform", "[", "ejectorAxleCenter", "]"}], "@", 
+   RowBox[{
+    RowBox[{"RotationTransform", "[", "\[Theta]", "]"}], "@", 
+    RowBox[{"InfiniteLine", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"0", ",", 
+        RowBox[{"-", "ejectorAxleRadius"}]}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"1", ",", "0"}], "}"}]}], "]"}]}]}]}]], "Input",
+ CellChangeTimes->{{3.944012017136671*^9, 3.944012066391889*^9}, {
+  3.944012172019644*^9, 3.9440122120262823`*^9}, {3.944012313475501*^9, 
+  3.944012321075984*^9}, {3.944012395822301*^9, 3.944012414147923*^9}, {
+  3.9440138900477962`*^9, 3.944013910739711*^9}, {3.9440149690509243`*^9, 
+  3.944014976313105*^9}},
+ CellLabel->"In[5]:=",ExpressionUUID->"29b1174d-750c-4e13-b075-c717d4407a50"],
+
+Cell[BoxData[
+ RowBox[{"InfiniteLine", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{
+      FractionBox[
+       RowBox[{"9", " ", "cardSizeX"}], "20"], "+", 
+      RowBox[{"ejectorAxleRadius", " ", 
+       RowBox[{"Sin", "[", "\[Theta]", "]"}]}]}], ",", 
+     RowBox[{"cardSizeY", "+", "ejectorAxleRadius", "-", 
+      RowBox[{"ejectorAxleRadius", " ", 
+       RowBox[{"Cos", "[", "\[Theta]", "]"}]}]}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"Cos", "[", "\[Theta]", "]"}], ",", 
+     RowBox[{"Sin", "[", "\[Theta]", "]"}]}], "}"}]}], "]"}]], "Output",
+ CellChangeTimes->{
+  3.9440120289442253`*^9, {3.944012059516178*^9, 3.944012071849876*^9}, {
+   3.9440121739025717`*^9, 3.9440122332158203`*^9}, {3.9440123978306293`*^9, 
+   3.9440124231730003`*^9}, {3.944013893859611*^9, 3.9440139111810093`*^9}, 
+   3.9440144392200727`*^9, 3.944014482098682*^9, 3.944014756089961*^9, 
+   3.9440148982076597`*^9, 3.944014976602544*^9, {3.944606662666304*^9, 
+   3.9446066648666573`*^9}, 3.9446067848778257`*^9, 3.94462434239793*^9, 
+   3.9446248857359543`*^9},
+ CellLabel->"Out[5]=",ExpressionUUID->"aab59518-bbd9-469e-bb58-b83ebeb280fa"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{"(*", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"springWidth", "=", "2"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"wallWidthForEjectorChute", "=", "3"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"ejectorChuteWidthX", "=", "4"}], ";"}]}], "*)"}]], "Input",
+ CellChangeTimes->{{3.944012538199663*^9, 3.9440126095417337`*^9}},
+ CellLabel->"In[6]:=",ExpressionUUID->"2a91b660-d402-41ca-a930-34f2ecdeda5c"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"plungerAnchor", "=", 
+  RowBox[{
+   RowBox[{"cardSizeXY", "*", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"1", "/", "2"}], ",", "1"}], "}"}]}], "+", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"springWidth", "+", "wallWidthForEjectorChute", "+", 
+      RowBox[{"ejectorChuteWidthX", "/", "2"}]}], ",", "0"}], 
+    "}"}]}]}]], "Input",
+ CellChangeTimes->{{3.94401252851993*^9, 3.944012610945385*^9}, {
+  3.944014076370839*^9, 3.944014076455324*^9}},
+ CellLabel->"In[7]:=",ExpressionUUID->"284bc1ba-d49f-41fd-b4fb-021643d38895"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{
+    FractionBox["cardSizeX", "2"], "+", 
+    FractionBox["ejectorChuteWidthX", "2"], "+", "springWidth", "+", 
+    "wallWidthForEjectorChute"}], ",", "cardSizeY"}], "}"}]], "Output",
+ CellChangeTimes->{{3.9440126068286457`*^9, 3.9440126112038383`*^9}, 
+   3.944013911964765*^9, 3.944014077413988*^9, 3.9440144411143847`*^9, 
+   3.94401448308434*^9, 3.944014757000046*^9, 3.94401489920361*^9, 
+   3.94401497776858*^9, 3.9446066656108637`*^9, 3.944606785693823*^9, 
+   3.9446243429504766`*^9, 3.944624886620764*^9},
+ CellLabel->"Out[7]=",ExpressionUUID->"06065a82-5ec4-4efa-b3ad-bbc0f3b5603f"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"plungerEndRadius", "=", 
+   RowBox[{"ejectorChuteWidthX", "/", "2"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.944014266712302*^9, 3.94401427878368*^9}},
+ CellLabel->"In[8]:=",ExpressionUUID->"5485d54e-be24-4dec-98c0-f324fda534fa"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"leverCircleCenterGuide", "=", 
+  RowBox[{
+   RowBox[{"TranslationTransform", "[", "ejectorAxleCenter", "]"}], "@", 
+   RowBox[{
+    RowBox[{"RotationTransform", "[", "\[Theta]", "]"}], "@", 
+    RowBox[{
+     RowBox[{"TranslationTransform", "[", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", 
+        RowBox[{
+         RowBox[{"-", "ejectorAxleRadius"}], "-", "plungerEndRadius"}]}], 
+       "}"}], "]"}], "@", 
+     RowBox[{"InfiniteLine", "[", 
+      RowBox[{"{", 
+       RowBox[{"1", ",", "0"}], "}"}], "]"}]}]}]}]}]], "Input",
+ CellChangeTimes->{{3.9440141089312553`*^9, 3.9440141525717897`*^9}, 
+   3.944014282896986*^9, 3.944014921074753*^9},
+ CellLabel->"In[9]:=",ExpressionUUID->"888a2870-514d-4301-8928-76217c2ce51a"],
+
+Cell[BoxData[
+ RowBox[{"InfiniteLine", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{
+      FractionBox[
+       RowBox[{"9", " ", "cardSizeX"}], "20"], "-", 
+      RowBox[{
+       FractionBox["1", "2"], " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"-", "2"}], " ", "ejectorAxleRadius"}], "-", 
+         "ejectorChuteWidthX"}], ")"}], " ", 
+       RowBox[{"Sin", "[", "\[Theta]", "]"}]}]}], ",", 
+     RowBox[{"cardSizeY", "+", "ejectorAxleRadius", "+", 
+      RowBox[{
+       FractionBox["1", "2"], " ", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"-", "2"}], " ", "ejectorAxleRadius"}], "-", 
+         "ejectorChuteWidthX"}], ")"}], " ", 
+       RowBox[{"Cos", "[", "\[Theta]", "]"}]}]}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"Cos", "[", "\[Theta]", "]"}], ",", 
+     RowBox[{"Sin", "[", "\[Theta]", "]"}]}], "}"}]}], "]"}]], "Output",
+ CellChangeTimes->{{3.944014145332703*^9, 3.94401415348074*^9}, 
+   3.944014284462289*^9, 3.944014443815503*^9, 3.944014483985051*^9, 
+   3.944014758087595*^9, 3.9440149000642548`*^9, 3.944014978619877*^9, 
+   3.944606666370295*^9, 3.9446067878944073`*^9, 3.9446243434778233`*^9, 
+   3.944624888090126*^9},
+ CellLabel->"Out[9]=",ExpressionUUID->"b75a8a61-3d5b-4b06-824b-404fd5277d69"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"plungerCircleCenterGuide", "=", 
+  RowBox[{"InfiniteLine", "[", 
+   RowBox[{"plungerAnchor", ",", 
+    RowBox[{"{", 
+     RowBox[{"0", ",", "1"}], "}"}]}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.944014196083905*^9, 3.944014231754725*^9}, {
+  3.94401495934056*^9, 3.944014963575427*^9}},
+ CellLabel->"In[10]:=",ExpressionUUID->"b6c63b2d-ba7f-4ac2-b294-9384ad42739f"],
+
+Cell[BoxData[
+ RowBox[{"InfiniteLine", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{
+      FractionBox["cardSizeX", "2"], "+", 
+      FractionBox["ejectorChuteWidthX", "2"], "+", "springWidth", "+", 
+      "wallWidthForEjectorChute"}], ",", "cardSizeY"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", "1"}], "}"}]}], "]"}]], "Output",
+ CellChangeTimes->{
+  3.944014232098496*^9, 3.944014284946466*^9, 3.944014444663816*^9, 
+   3.944014484504347*^9, 3.9440147584667377`*^9, 3.944014900505787*^9, {
+   3.944014963984874*^9, 3.944014979118966*^9}, 3.944606666974018*^9, 
+   3.9446067882596807`*^9, 3.944624343720016*^9, 3.944624890555649*^9},
+ CellLabel->"Out[10]=",ExpressionUUID->"dccf8b9f-2e8c-40ce-9a0c-597446080eaa"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"extraInternalDepthForEjector", "=", "7.3"}], ";"}]], "Input",
+ CellChangeTimes->{{3.944012670936265*^9, 3.944012674974218*^9}, {
+  3.944606624535194*^9, 3.944606624554846*^9}},
+ CellLabel->"In[11]:=",ExpressionUUID->"cec79da7-cc90-4936-b8ba-a2bf3a473e8b"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Param", "[", 
+   RowBox[{"a_", ",", 
+    RowBox[{"InfiniteLine", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"pX_", ",", "pY_"}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"dX_", ",", "dY_"}], "}"}]}], "]"}]}], "]"}], ":=", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"pX", "+", 
+     RowBox[{"a", "*", "dX"}]}], ",", 
+    RowBox[{"pY", "+", 
+     RowBox[{"a", "*", "dY"}]}]}], "}"}]}]], "Input",
+ CellChangeTimes->{{3.944015558177615*^9, 3.944015617877514*^9}},
+ CellLabel->"In[12]:=",ExpressionUUID->"e87603bb-9443-4e7e-b250-70aa8c40dab2"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Param", "[", 
+  RowBox[{"a", ",", "leverCircleCenterGuide"}], "]"}]], "Input",
+ CellChangeTimes->{{3.944015622083359*^9, 3.944015631173373*^9}},
+ CellLabel->"In[13]:=",ExpressionUUID->"7f5eccd7-d407-4184-b3e6-c5fe8388bd0f"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{
+    FractionBox[
+     RowBox[{"9", " ", "cardSizeX"}], "20"], "+", 
+    RowBox[{"a", " ", 
+     RowBox[{"Cos", "[", "\[Theta]", "]"}]}], "-", 
+    RowBox[{
+     FractionBox["1", "2"], " ", 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"-", "2"}], " ", "ejectorAxleRadius"}], "-", 
+       "ejectorChuteWidthX"}], ")"}], " ", 
+     RowBox[{"Sin", "[", "\[Theta]", "]"}]}]}], ",", 
+   RowBox[{"cardSizeY", "+", "ejectorAxleRadius", "+", 
+    RowBox[{
+     FractionBox["1", "2"], " ", 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"-", "2"}], " ", "ejectorAxleRadius"}], "-", 
+       "ejectorChuteWidthX"}], ")"}], " ", 
+     RowBox[{"Cos", "[", "\[Theta]", "]"}]}], "+", 
+    RowBox[{"a", " ", 
+     RowBox[{"Sin", "[", "\[Theta]", "]"}]}]}]}], "}"}]], "Output",
+ CellChangeTimes->{{3.944015622639316*^9, 3.944015631746125*^9}, 
+   3.9446066687733383`*^9, 3.944606790042804*^9, 3.944624344928735*^9, 
+   3.9446246267951593`*^9, 3.944624897225016*^9},
+ CellLabel->"Out[13]=",ExpressionUUID->"9b5bc7a8-9d9a-4fe8-b049-ecd523736de0"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Param", "[", 
+  RowBox[{"b", ",", "plungerCircleCenterGuide"}], "]"}]], "Input",
+ CellChangeTimes->{{3.944015639895998*^9, 3.9440156407879553`*^9}},
+ CellLabel->"In[14]:=",ExpressionUUID->"63f080c4-7e03-44b9-82b8-fa10ab919966"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{
+    FractionBox["cardSizeX", "2"], "+", 
+    FractionBox["ejectorChuteWidthX", "2"], "+", "springWidth", "+", 
+    "wallWidthForEjectorChute"}], ",", 
+   RowBox[{"b", "+", "cardSizeY"}]}], "}"}]], "Output",
+ CellChangeTimes->{3.944015641065178*^9, 3.9446066692820883`*^9, 
+  3.944606790584337*^9, 3.944624345197791*^9, 3.9446246272181797`*^9, 
+  3.9446248978885813`*^9},
+ CellLabel->"Out[14]=",ExpressionUUID->"212907d4-36ad-40f3-9e47-6c5ffa14bb7b"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"plungerEndRadiusCenterAB", "=", 
+  RowBox[{
+   RowBox[{"Solve", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"Param", "[", 
+       RowBox[{"a", ",", "leverCircleCenterGuide"}], "]"}], "==", 
+      RowBox[{"Param", "[", 
+       RowBox[{"b", ",", "plungerCircleCenterGuide"}], "]"}]}], ",", 
+     RowBox[{"{", 
+      RowBox[{"a", ",", "b"}], "}"}]}], "]"}], "[", 
+   RowBox[{"[", "1", "]"}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.944015443259264*^9, 3.944015495488501*^9}, {
+  3.944015652502266*^9, 3.944015693900964*^9}},
+ CellLabel->"In[15]:=",ExpressionUUID->"ea33b150-d475-493f-8d8d-a75419809833"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"a", "\[Rule]", 
+    RowBox[{
+     FractionBox["1", "20"], " ", 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"cardSizeX", " ", 
+        RowBox[{"Sec", "[", "\[Theta]", "]"}]}], "+", 
+       RowBox[{"10", " ", "ejectorChuteWidthX", " ", 
+        RowBox[{"Sec", "[", "\[Theta]", "]"}]}], "+", 
+       RowBox[{"20", " ", "springWidth", " ", 
+        RowBox[{"Sec", "[", "\[Theta]", "]"}]}], "+", 
+       RowBox[{"20", " ", "wallWidthForEjectorChute", " ", 
+        RowBox[{"Sec", "[", "\[Theta]", "]"}]}], "-", 
+       RowBox[{"20", " ", "ejectorAxleRadius", " ", 
+        RowBox[{"Tan", "[", "\[Theta]", "]"}]}], "-", 
+       RowBox[{"10", " ", "ejectorChuteWidthX", " ", 
+        RowBox[{"Tan", "[", "\[Theta]", "]"}]}]}], ")"}]}]}], ",", 
+   RowBox[{"b", "\[Rule]", 
+    RowBox[{
+     FractionBox["1", "20"], " ", 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"20", " ", "ejectorAxleRadius"}], "-", 
+       RowBox[{"20", " ", "ejectorAxleRadius", " ", 
+        RowBox[{"Cos", "[", "\[Theta]", "]"}]}], "-", 
+       RowBox[{"10", " ", "ejectorChuteWidthX", " ", 
+        RowBox[{"Cos", "[", "\[Theta]", "]"}]}], "+", 
+       RowBox[{"cardSizeX", " ", 
+        RowBox[{"Tan", "[", "\[Theta]", "]"}]}], "+", 
+       RowBox[{"10", " ", "ejectorChuteWidthX", " ", 
+        RowBox[{"Tan", "[", "\[Theta]", "]"}]}], "+", 
+       RowBox[{"20", " ", "springWidth", " ", 
+        RowBox[{"Tan", "[", "\[Theta]", "]"}]}], "+", 
+       RowBox[{"20", " ", "wallWidthForEjectorChute", " ", 
+        RowBox[{"Tan", "[", "\[Theta]", "]"}]}], "-", 
+       RowBox[{"20", " ", "ejectorAxleRadius", " ", 
+        RowBox[{"Sin", "[", "\[Theta]", "]"}], " ", 
+        RowBox[{"Tan", "[", "\[Theta]", "]"}]}], "-", 
+       RowBox[{"10", " ", "ejectorChuteWidthX", " ", 
+        RowBox[{"Sin", "[", "\[Theta]", "]"}], " ", 
+        RowBox[{"Tan", "[", "\[Theta]", "]"}]}]}], ")"}]}]}]}], 
+  "}"}]], "Output",
+ CellChangeTimes->{{3.944015447191975*^9, 3.944015495961935*^9}, 
+   3.9440156608511963`*^9, 3.944015694332182*^9, 3.944606669864422*^9, 
+   3.9446067911743803`*^9, 3.944624345573704*^9, 3.944624627651778*^9, 
+   3.944624898717208*^9},
+ CellLabel->"Out[15]=",ExpressionUUID->"a875fe63-9295-4e05-9410-6efba45411d0"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"plungerEndRadiusCenter", "=", 
+  RowBox[{
+   RowBox[{"(", 
+    RowBox[{
+     RowBox[{"Param", "[", 
+      RowBox[{"a", ",", "leverCircleCenterGuide"}], "]"}], "/.", 
+     "plungerEndRadiusCenterAB"}], ")"}], "//", "Simplify"}]}]], "Input",
+ CellChangeTimes->{{3.944015674215672*^9, 3.9440157188000307`*^9}},
+ CellLabel->"In[16]:=",ExpressionUUID->"3d0050af-179c-4288-bfd9-4f146e213099"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{
+    FractionBox["1", "2"], " ", 
+    RowBox[{"(", 
+     RowBox[{"cardSizeX", "+", "ejectorChuteWidthX", "+", 
+      RowBox[{"2", " ", 
+       RowBox[{"(", 
+        RowBox[{"springWidth", "+", "wallWidthForEjectorChute"}], ")"}]}]}], 
+     ")"}]}], ",", 
+   RowBox[{"cardSizeY", "+", "ejectorAxleRadius", "-", 
+    RowBox[{
+     FractionBox["1", "2"], " ", 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"2", " ", "ejectorAxleRadius"}], "+", "ejectorChuteWidthX"}], 
+      ")"}], " ", 
+     RowBox[{"Sec", "[", "\[Theta]", "]"}]}], "+", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       FractionBox["cardSizeX", "20"], "+", 
+       FractionBox["ejectorChuteWidthX", "2"], "+", "springWidth", "+", 
+       "wallWidthForEjectorChute"}], ")"}], " ", 
+     RowBox[{"Tan", "[", "\[Theta]", "]"}]}]}]}], "}"}]], "Output",
+ CellChangeTimes->{3.944624525826992*^9, 3.9446246283298197`*^9, 
+  3.9446248997729177`*^9},
+ CellLabel->"Out[16]=",ExpressionUUID->"bcdcfdaf-92b9-49d5-95ca-323361f81562"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Graphics", "[", 
+  RowBox[{
+   RowBox[{"{", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"Point", "[", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", "0"}], "}"}], "]"}], ",", "\[IndentingNewLine]", 
+     RowBox[{"{", 
+      RowBox[{"Purple", ",", "leverBottom"}], "}"}], ",", 
+     "\[IndentingNewLine]", "leverCircleCenterGuide", ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{"{", 
+      RowBox[{"Purple", ",", 
+       RowBox[{"Point", "@", "ejectorAxleCenter"}]}], "}"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"TranslationTransform", "[", 
+       RowBox[{"plungerAnchor", "+", 
+        RowBox[{"{", 
+         RowBox[{"0", ",", "extraInternalDepthForEjector"}], "}"}]}], "]"}], 
+      "[", 
+      RowBox[{"InfiniteLine", "[", 
+       RowBox[{"{", 
+        RowBox[{"1", ",", "0"}], "}"}], "]"}], "]"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{"{", 
+      RowBox[{"Green", ",", 
+       RowBox[{"Point", "@", "plungerAnchor"}]}], "}"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{"{", 
+      RowBox[{"Green", ",", "plungerCircleCenterGuide"}], "}"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{"{", 
+      RowBox[{"Orange", ",", 
+       RowBox[{"Point", "@", "plungerEndRadiusCenter"}]}], "}"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{"{", 
+      RowBox[{"Orange", ",", 
+       RowBox[{"Circle", "[", 
+        RowBox[{"plungerEndRadiusCenter", ",", "plungerEndRadius"}], "]"}]}], 
+      "}"}]}], "\[IndentingNewLine]", "}"}], "/.", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"\[Theta]", "->", 
+      RowBox[{"40", "\[Degree]"}]}], ",", 
+     RowBox[{"cardSizeX", "->", "29.60"}], ",", 
+     RowBox[{"cardSizeY", "->", "38.55"}], ",", 
+     RowBox[{"springWidth", "->", "2"}], ",", 
+     RowBox[{"wallWidthForEjectorChute", "->", "3"}], ",", 
+     RowBox[{"ejectorChuteWidthX", "->", "4"}], ",", 
+     RowBox[{"ejectorAxleRadius", "->", "2"}]}], "}"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.944014990328466*^9, 3.9440150308024054`*^9}, {
+  3.944015061168314*^9, 3.944015063111896*^9}, {3.9440151288124323`*^9, 
+  3.9440151953141336`*^9}, {3.9440152852544403`*^9, 3.9440152860525303`*^9}, {
+  3.944015325688879*^9, 3.9440153259176083`*^9}, {3.944015370899612*^9, 
+  3.94401537143923*^9}, {3.9440157284432*^9, 3.9440157399944696`*^9}, {
+  3.9446243537884493`*^9, 3.94462437998315*^9}, {3.944624415635366*^9, 
+  3.9446244181259604`*^9}},
+ CellLabel->"In[17]:=",ExpressionUUID->"37f6a0fe-f2a6-4e24-961c-f2c34b21e706"],
+
+Cell[BoxData[
+ GraphicsBox[{PointBox[{0, 0}], 
+   {RGBColor[0.5, 0, 0.5], 
+    TagBox[
+     ConicHullRegionBox[{14.60557521937308, 39.01791111376204}, 
+      NCache[{{Cos[40 Degree], Sin[40 Degree]}}, {{0.766044443118978, 
+       0.6427876096865393}}]],
+     "InfiniteLine"]}, 
+   TagBox[
+    ConicHullRegionBox[{15.891150438746157`, 37.48582222752408}, 
+     NCache[{{Cos[40 Degree], Sin[40 Degree]}}, {{0.766044443118978, 
+      0.6427876096865393}}]],
+    "InfiniteLine"], 
+   {RGBColor[0.5, 0, 0.5], PointBox[{13.32, 40.55}]}, 
+   TagBox[ConicHullRegionBox[{21.8, 45.849999999999994`}, {{1, 0}}],
+    "InfiniteLine"], 
+   {RGBColor[0, 1, 0], PointBox[{21.8, 38.55}]}, 
+   {RGBColor[0, 1, 0], 
+    TagBox[ConicHullRegionBox[{21.8, 38.55}, {{0, 1}}],
+     "InfiniteLine"]}, 
+   {RGBColor[1, 0.5, 0], PointBox[{21.8, 42.44393571505422}]}, 
+   {RGBColor[1, 0.5, 0], CircleBox[{21.8, 42.44393571505422}, 2]}}]], "Output",\
+
+ CellChangeTimes->{
+  3.944015195936737*^9, 3.944015286322568*^9, {3.944015323968199*^9, 
+   3.944015329505108*^9}, 3.944015371845292*^9, {3.944015724332693*^9, 
+   3.944015740314987*^9}, 3.944606671767631*^9, {3.944624350020393*^9, 
+   3.944624418896504*^9}, 3.944624456882245*^9, 3.944624527358261*^9, 
+   3.94462462905828*^9, 3.944624904810685*^9},
+ CellLabel->"Out[17]=",ExpressionUUID->"6932c83a-79cb-4808-af23-b47888d1614a"]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{864, 975},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+FrontEndVersion->"12.3 for Mac OS X ARM (64-bit) (September 30, 2021)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"ab109520-cdab-4766-8864-e066eb1e430b"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 161, 3, 67, "Section",ExpressionUUID->"9daf3899-0028-4b67-80fb-72f0d47ef59e"],
+Cell[744, 27, 1691, 44, 136, "Input",ExpressionUUID->"6d08a17c-4b98-4cab-a00d-9b9d2d64bfa7"],
+Cell[CellGroupData[{
+Cell[2460, 75, 832, 18, 52, "Input",ExpressionUUID->"29b1174d-750c-4e13-b075-c717d4407a50"],
+Cell[3295, 95, 1159, 25, 80, "Output",ExpressionUUID->"aab59518-bbd9-469e-bb58-b83ebeb280fa"]
+}, Open  ]],
+Cell[4469, 123, 452, 11, 73, "Input",ExpressionUUID->"2a91b660-d402-41ca-a930-34f2ecdeda5c"],
+Cell[CellGroupData[{
+Cell[4946, 138, 554, 14, 52, "Input",ExpressionUUID->"284bc1ba-d49f-41fd-b4fb-021643d38895"],
+Cell[5503, 154, 643, 12, 51, "Output",ExpressionUUID->"06065a82-5ec4-4efa-b3ad-bbc0f3b5603f"]
+}, Open  ]],
+Cell[6161, 169, 266, 5, 30, "Input",ExpressionUUID->"5485d54e-be24-4dec-98c0-f324fda534fa"],
+Cell[CellGroupData[{
+Cell[6452, 178, 750, 18, 73, "Input",ExpressionUUID->"888a2870-514d-4301-8928-76217c2ce51a"],
+Cell[7205, 198, 1322, 34, 90, "Output",ExpressionUUID->"b75a8a61-3d5b-4b06-824b-404fd5277d69"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[8564, 237, 391, 8, 30, "Input",ExpressionUUID->"b6c63b2d-ba7f-4ac2-b294-9384ad42739f"],
+Cell[8958, 247, 740, 16, 80, "Output",ExpressionUUID->"dccf8b9f-2e8c-40ce-9a0c-597446080eaa"]
+}, Open  ]],
+Cell[9713, 266, 290, 5, 30, "Input",ExpressionUUID->"cec79da7-cc90-4936-b8ba-a2bf3a473e8b"],
+Cell[10006, 273, 590, 17, 30, "Input",ExpressionUUID->"e87603bb-9443-4e7e-b250-70aa8c40dab2"],
+Cell[CellGroupData[{
+Cell[10621, 294, 247, 4, 30, "Input",ExpressionUUID->"7f5eccd7-d407-4184-b3e6-c5fe8388bd0f"],
+Cell[10871, 300, 1120, 30, 90, "Output",ExpressionUUID->"9b5bc7a8-9d9a-4fe8-b049-ecd523736de0"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[12028, 335, 251, 4, 30, "Input",ExpressionUUID->"63f080c4-7e03-44b9-82b8-fa10ab919966"],
+Cell[12282, 341, 501, 11, 51, "Output",ExpressionUUID->"212907d4-36ad-40f3-9e47-6c5ffa14bb7b"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[12820, 357, 628, 15, 52, "Input",ExpressionUUID->"ea33b150-d475-493f-8d8d-a75419809833"],
+Cell[13451, 374, 2259, 49, 181, "Output",ExpressionUUID->"a875fe63-9295-4e05-9410-6efba45411d0"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[15747, 428, 410, 9, 52, "Input",ExpressionUUID->"3d0050af-179c-4288-bfd9-4f146e213099"],
+Cell[16160, 439, 1046, 28, 128, "Output",ExpressionUUID->"bcdcfdaf-92b9-49d5-95ca-323361f81562"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[17243, 472, 2497, 59, 283, "Input",ExpressionUUID->"37f6a0fe-f2a6-4e24-961c-f2c34b21e706"],
+Cell[19743, 533, 1353, 29, 430, "Output",ExpressionUUID->"6932c83a-79cb-4808-af23-b47888d1614a"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
