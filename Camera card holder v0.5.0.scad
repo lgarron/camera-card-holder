@@ -234,9 +234,9 @@ EJECTOR_RETAINERS_TOTAL_HEIGHT = 2; // Top and bottom accoutn for half each.
 
 TOTAL_EXTRA_WIDTH_FOR_EJECTOR = WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X;
 
-function slot_bottom_distance_z(card_size) = _z(card_size) + CASE_MARGIN_Z + CLEARANCE;
+function slot_bottom_distance_z(card_size) = card_size.z + CASE_MARGIN_Z + CLEARANCE;
 function slot_width_distance_x(card_size) =
-  _x(card_size) + 2 * SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X + CASE_MARGIN_Z;
+  card_size.x + 2 * SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X + CASE_MARGIN_Z;
 
 module casing(card_size, include_bevel_rounding, extra_height = 0, full_design_has_multiple_slots = false) {
   translate([full_design_has_multiple_slots ? 0 : TOTAL_EXTRA_WIDTH_FOR_EJECTOR / 2, 0, extra_height / 2])
@@ -262,11 +262,11 @@ EJECTOR_AXLE_CLEARANCE = 0.15;
 // We don't include `y` clearance, since that ensures a snug state when the card is in, and the lever is not
 // touching near the spring while printed.
 function ejector_axle_center(card_size) =
-  _x_y_(card_size, [0.45, 1, 0]) + [0, STICK_OUT_MARGIN_Z + EJECTOR_AXLE_RADIUS, 0];
+  _xy_(card_size, [0.45, 1, 0]) + [0, STICK_OUT_MARGIN_Z + EJECTOR_AXLE_RADIUS, 0];
 
 module funnel_comp(card_size) {
   negative() minkowski() {
-      cuboid(_x_z_(card_size) + [0, _EPSILON, 0 + CLEARANCE * 2], anchor=CENTER);
+      cuboid(_xz_(card_size) + [0, _EPSILON, 0 + CLEARANCE * 2], anchor=CENTER);
       rotate([-90, 0, 0]) scale([SPRING_WIDTH, 1, FUNNEL_DEFAULT_MARGIN_Z - CLEARANCE / 2])
           cylinder(FUNNEL_DEPTH - _EPSILON, r1=1, r2=0);
     }
@@ -275,11 +275,11 @@ module funnel_comp(card_size) {
 module air_hole_comp(card_size) {
   negative() translate(
       [
-        _x(card_size, -1 / 4),
-        _y(card_size) + STICK_OUT_MARGIN_Z - _EPSILON + EXTRA_BACK_DEPTH_FOR_LEVER,
-        -_z(card_size) / 2 - CLEARANCE,
+        card_size.x * -1 / 4,
+        card_size.y + STICK_OUT_MARGIN_Z - _EPSILON + EXTRA_BACK_DEPTH_FOR_LEVER,
+        -card_size.z / 2 - CLEARANCE,
       ]
-    ) cube([_x(card_size, 1 / 2), DEFAULT_MARGIN + 2 * _EPSILON, _z(card_size, 1 / 3)]);
+    ) cube([card_size.x * 1 / 2, DEFAULT_MARGIN + 2 * _EPSILON, card_size.z * 1 / 3]);
 }
 
 module engraving_comp(card_size, card_type_label) {
@@ -288,8 +288,8 @@ module engraving_comp(card_size, card_type_label) {
         translate(
           [
             0,
-            (DEFAULT_MARGIN + _y(card_size) + STICK_OUT_MARGIN_Z) / 2,
-            _z(card_size, 1 / 2) + CASE_MARGIN_Z - TEXT_ENGRAVING_DEPTH,
+            (DEFAULT_MARGIN + card_size.y + STICK_OUT_MARGIN_Z) / 2,
+            card_size.z * 1 / 2 + CASE_MARGIN_Z - TEXT_ENGRAVING_DEPTH,
           ]
         ) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
             text(VERSION_TEXT, size=5, font="Ubuntu:style=bold", halign="center", valign="center");
@@ -298,8 +298,8 @@ module engraving_comp(card_size, card_type_label) {
         translate(
           [
             0,
-            (DEFAULT_MARGIN + _y(card_size) + STICK_OUT_MARGIN_Z) / 2 - 7,
-            _z(card_size, 1 / 2) + CASE_MARGIN_Z - TEXT_ENGRAVING_DEPTH,
+            (DEFAULT_MARGIN + card_size.y + STICK_OUT_MARGIN_Z) / 2 - 7,
+            card_size.z * 1 / 2 + CASE_MARGIN_Z - TEXT_ENGRAVING_DEPTH,
           ]
         ) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
             text(card_type_label, size=3, font="Ubuntu:style=bold", halign="center", valign="center");
@@ -313,7 +313,7 @@ SPRING_THICKNESS = 0.75;
 
 SPRING_INSET = 0.1;
 
-function spring_depth(card_size) = (_y(card_size) + STICK_OUT_MARGIN_Z) / 2;
+function spring_depth(card_size) = (card_size.y + STICK_OUT_MARGIN_Z) / 2;
 
 module spring_shell(card_size, compression) {
   scale([SPRING_WIDTH + compression, spring_depth(card_size) / 2]) circle(1);
@@ -321,9 +321,9 @@ module spring_shell(card_size, compression) {
 
 module spring_pair(card_size, compression) {
   positive() color("orange") duplicate_and_mirror() translate(
-          [_x(card_size, 1 / 2) + SPRING_WIDTH, spring_depth(card_size) / 2, _z(card_size, -1 / 2) + SPRING_CLEARANCE]
+          [card_size.x * 1 / 2 + SPRING_WIDTH, spring_depth(card_size) / 2, card_size.z * -1 / 2 + SPRING_CLEARANCE]
         )
-          linear_extrude(_z(card_size) - 2 * SPRING_CLEARANCE) difference() {
+          linear_extrude(card_size.z - 2 * SPRING_CLEARANCE) difference() {
               spring_shell(card_size, compression);
               offset(-SPRING_THICKNESS) spring_shell(card_size, compression);
               translate([LARGE_VALUE / 2, 0, 0]) square(LARGE_VALUE, center=true);
@@ -341,7 +341,7 @@ module springs_comp(card_size) {
 // TODO don't hardcode this for CFExpress
 module card_tab_negative_comp(card_size, card_tab_negative_size) {
   // TODO: implement angled sides?
-  negative() translate([0, 0, -_z(card_size, 1 / 2)]) cuboid(card_tab_negative_size, anchor=FRONT + TOP);
+  negative() translate([0, 0, -card_size.z * 1 / 2]) cuboid(card_tab_negative_size, anchor=FRONT + TOP);
 }
 
 EXTRA_HEIGHT_EACH_SIDE_FOR_LABEL = 0.1;
@@ -352,7 +352,7 @@ module card_slot_comp(card_size, card_tab_negative_size) {
 
   // Add extra height in the middle (on both sides) for sticker labels.
   negative() translate([0, STICK_OUT_MARGIN_Z, 0]) cuboid(
-        scale_entries_independently(card_size, [2 / 3, 1, 1]) + [2 * SPRING_WIDTH, EXTRA_BACK_DEPTH_FOR_LEVER, 2 * CLEARANCE + 2 * EXTRA_HEIGHT_EACH_SIDE_FOR_LABEL],
+        __xyz__scale_entries_independently(card_size, [2 / 3, 1, 1]) + [2 * SPRING_WIDTH, EXTRA_BACK_DEPTH_FOR_LEVER, 2 * CLEARANCE + 2 * EXTRA_HEIGHT_EACH_SIDE_FOR_LABEL],
         anchor=FRONT
       );
 
@@ -374,13 +374,13 @@ AXLE_INSET = 0.7;
 AXLE_INSET_CLEARANCE = 0.6;
 
 module ejector_axle_hole_snappable_print_supports(card_size) {
-  duplicate_and_mirror([0, 0, 1]) translate([0, 0, _z(card_size) / 2 + CASE_MARGIN_Z / 2 - AXLE_INSET / 2])
+  duplicate_and_mirror([0, 0, 1]) translate([0, 0, card_size.z / 2 + CASE_MARGIN_Z / 2 - AXLE_INSET / 2])
       cuboid(
         [
           EJECTOR_AXLE_RADIUS * 1 / 4,
           (EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2 + 2 * _EPSILON) / 2,
           EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT,
-          // _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON + 2 *
+          // card_size.z + 2 * CASE_MARGIN_Z + 2 * _EPSILON + 2 *
           // _EPSILON
         ],
         anchor=FRONT
@@ -398,7 +398,7 @@ module untranslated_axle_hole(card_size) {
   union() {
 
     cylinder(
-      h=_z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
+      h=card_size.z + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
       r=EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_CLEARANCE, center=true
     );
 
@@ -407,7 +407,7 @@ module untranslated_axle_hole(card_size) {
         [
           EJECTOR_AXLE_RADIUS * 2 * 2 / 3,
           EJECTOR_AXLE_RADIUS + CLEARANCE + EJECTOR_AXLE_CLEARANCE,
-          _z(card_size) + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
+          card_size.z + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
         ],
         anchor=FRONT
       );
@@ -430,11 +430,11 @@ LEVER_TORQUE_SMOOTHING_CURVE_SCALE = 2;
 
 module ejector_lever_comp(card_size) {
   // Ejector back area
-  negative() translate([_x(card_size, 1 / 2), _y(card_size) + STICK_OUT_MARGIN_Z, 0]) cuboid(
+  negative() translate([card_size.x * 1 / 2, card_size.y + STICK_OUT_MARGIN_Z, 0]) cuboid(
         [
           SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X,
           EXTRA_BACK_DEPTH_FOR_LEVER,
-          _z(card_size) + 2 * CLEARANCE,
+          card_size.z + 2 * CLEARANCE,
         ],
         anchor=LEFT + FRONT
       );
@@ -449,7 +449,7 @@ module ejector_lever_comp(card_size) {
 
     // Axle
     positive()
-      cylinder(h=_z(card_size) + 2 * CASE_MARGIN_Z - 2 * AXLE_INSET, r=EJECTOR_AXLE_RADIUS, center=true);
+      cylinder(h=card_size.z + 2 * CASE_MARGIN_Z - 2 * AXLE_INSET, r=EJECTOR_AXLE_RADIUS, center=true);
 
     // Lever
     lever_values_struct = struct_set(
@@ -457,13 +457,13 @@ module ejector_lever_comp(card_size) {
         //
         "lever_offset",
         [
-          -_x(card_size, LEVER_SCALE) / 2 + SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE + LEVER_OFFSET,
+          -card_size.x * LEVER_SCALE / 2 + SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE + LEVER_OFFSET,
           EJECTOR_LEVER_OFFSET_ANGLED_Y,
           0,
         ],
         //
         "large_value_for_y",
-        _x(card_size, LEVER_SCALE),
+        card_size.x * LEVER_SCALE,
         //
         "lever_core_size",
         _x_(card_size, LEVER_SCALE) + _z_(card_size) + [0, EJECTOR_LEVER_WIDTH, 0] - [2 * EJECTOR_LEVER_ROUNDING, 2 * EJECTOR_LEVER_ROUNDING, -_EPSILON],
@@ -484,7 +484,7 @@ module ejector_lever_comp(card_size) {
                     duplicate_and_mirror([0, 1, 0]) duplicate_and_mirror()
                         translate(_x_(card_size, -LEVER_SCALE / 2) + [0, -EJECTOR_AXLE_RADIUS / 2, 0])
                           round_bevel_complement(
-                            height=_z(card_size) + 2 * _EPSILON,
+                            height=card_size.z + 2 * _EPSILON,
                             radius=EJECTOR_AXLE_RADIUS / 2, center_z=true
                           );
                 }
@@ -500,18 +500,18 @@ module ejector_lever_comp(card_size) {
 
                     translate([0, EJECTOR_AXLE_RADIUS * 2.5, 0])
                       cuboid([LARGE_VALUE, LARGE_VALUE, LARGE_VALUE], anchor=BACK);
-                    // translate(lever_offset) cuboid(lever_core_size + [ 0, _x(card_size, LEVER_SCALE), 0 ],
+                    // translate(lever_offset) cuboid(lever_core_size + [ 0, card_size.x* LEVER_SCALE), 0 ],
                     // anchor = FRONT);``
                   }
               }
             }
 
             // Torque smoothing curve
-            translate([-_x(card_size * LEVER_TORQUE_SMOOTHING_CURVE_SCALE), -EJECTOR_AXLE_RADIUS, 0])
-              round_bevel_complement(height=_z(card_size), radius=_x(card_size * 2), center_z=true);
+            translate([-(card_size * LEVER_TORQUE_SMOOTHING_CURVE_SCALE).x, -EJECTOR_AXLE_RADIUS, 0])
+              round_bevel_complement(height=card_size.z, radius=card_size.x * 2, center_z=true);
           }
 
-    axle_center_to_back_y = (_y(card_size) + EXTRA_BACK_DEPTH_FOR_LEVER) - _y(ejector_axle_center(card_size));
+    axle_center_to_back_y = (card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER) - ejector_axle_center(card_size).y;
     color("purple") difference() {
         union() {
           cuboid(
@@ -550,14 +550,14 @@ function sec(theta) = 1 / cos(theta);
 
 function plunger_back_rounding_center(card_size) =
   [
-    1 / 2 * (_x(card_size) + EJECTOR_PLUNGER_WIDTH_X + 2 * (SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE)),
-    _y(card_size) + EJECTOR_AXLE_RADIUS - 1 / 2 * (2 * EJECTOR_AXLE_RADIUS + EJECTOR_PLUNGER_WIDTH_X) * sec(EJECTOR_LEVER_PRINTING_ANGLE) + (_x(card_size) / 20 + EJECTOR_PLUNGER_WIDTH_X / 2 + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE) * tan(EJECTOR_LEVER_PRINTING_ANGLE),
+    1 / 2 * (card_size.x + EJECTOR_PLUNGER_WIDTH_X + 2 * (SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE)),
+    card_size.y + EJECTOR_AXLE_RADIUS - 1 / 2 * (2 * EJECTOR_AXLE_RADIUS + EJECTOR_PLUNGER_WIDTH_X) * sec(EJECTOR_LEVER_PRINTING_ANGLE) + (card_size.x / 20 + EJECTOR_PLUNGER_WIDTH_X / 2 + SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE) * tan(EJECTOR_LEVER_PRINTING_ANGLE),
   ];
 
 PLUNGER_ROUNDING_FN = 32; // If this value is higher, render times go *waaaay* up.
 
 module plunger_retainer(card_size, extra_height, subtract_width = 0) {
-  depth = _y(SD_CARD_SIZE, 1 / 5);
+  depth = SD_CARD_SIZE.y * 1 / 5;
 
   plunger_hook_size = _z_(card_size) + [EJECTOR_PLUNGER_WIDTH_X - subtract_width, depth, 0];
   render() translate(_x_(card_size) / 2 + [SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR, 0, 0]) render() minkowski() {
@@ -579,13 +579,13 @@ module ejector_plunger(card_size, is_top, is_bottom) {
         _x_(card_size, 1 / 2) + [SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X, 0, 0]
       )
         cuboid(
-          _z_(card_size) + [EJECTOR_PLUNGER_WIDTH_X, _y(plunger_back_rounding_center(card_size)), 0],
+          _z_(card_size) + [EJECTOR_PLUNGER_WIDTH_X, plunger_back_rounding_center(card_size).y, 0],
           anchor=RIGHT + FRONT
         );
 
       plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT);
       render() difference() {
-          plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT + _z(card_size, 1), subtract_width=1);
+          plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT + card_size.z, subtract_width=1);
           if (is_top) {
             cuboid(LARGE_VALUE, anchor=BOTTOM);
           }
@@ -596,7 +596,7 @@ module ejector_plunger(card_size, is_top, is_bottom) {
 
       render() translate(_y_(card_size, 1 / 2)) intersection() {
             plunger_retainer(card_size, _EPSILON);
-            cuboid([LARGE_VALUE, LARGE_VALUE, _z(card_size)], anchor=LEFT + FRONT);
+            cuboid([LARGE_VALUE, LARGE_VALUE, card_size.z], anchor=LEFT + FRONT);
           }
     }
 }
@@ -604,7 +604,7 @@ module ejector_plunger(card_size, is_top, is_bottom) {
 EJECTOR_PLUNGER_BACK_CLEARANCE = 1;
 
 function plunger_travel_distance_y(card_size) =
-  _y(plunger_back_rounding_center(card_size)) - _y(card_size) + EJECTOR_PLUNGER_WIDTH_X / 2;
+  plunger_back_rounding_center(card_size).y - card_size.y + EJECTOR_PLUNGER_WIDTH_X / 2;
 
 // TODO: With current dimensions, the lever doesn't extend *quite* far enough in the `x` direction to perfectly contact
 // the plunger.
@@ -623,7 +623,7 @@ module ejector_plunger_comp(card_size, is_top, is_bottom) {
             ejector_plunger(card_size, is_top, is_bottom);
 
             translate(plunger_back_rounding_center(card_size))
-              cylinder(h=_z(card_size), r=EJECTOR_PLUNGER_WIDTH_X / 2, center=true);
+              cylinder(h=card_size.z, r=EJECTOR_PLUNGER_WIDTH_X / 2, center=true);
           }
 }
 
@@ -714,7 +714,7 @@ module block_array(
   full_design_has_multiple_slots = n > 1;
   render() translate(
       DEBUG ? [0, 0, 0]
-      : -[0, _y(card_size) + EXTRA_BACK_DEPTH_FOR_LEVER + CASE_BACK_THICKNESS, 0]
+      : -[0, card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER + CASE_BACK_THICKNESS, 0]
     ) compose() {
         render() carvable() difference() {
               render() block_array_unrounded_comp(
