@@ -1,3 +1,32 @@
+VARIANT = "default"; // ["default", "dual-color"]
+
+// This empty block prevents any following `CONSTANT_CASE` variables from being settable in the customizer.
+// This prevents pathological interactions with persisted customizer values that are meant to be controlled exclusively by `VARIANT`.
+{};
+
+VARIANT_DATA = [
+  [
+    "default",
+    [
+      [
+        ["DUAL_COLOR", false],
+      ],
+    ],
+  ],
+  [
+    "dual-color",
+    [
+      [
+        ["DUAL_COLOR", true],
+      ],
+    ],
+  ],
+];
+
+include <./node_modules/scad/variants.scad>
+
+DUAL_COLOR = get_parameter("DUAL_COLOR");
+
 VERSION_TEXT = "v0.5.0";
 
 DEBUG = false;
@@ -627,8 +656,8 @@ module ejector_plunger_comp(card_size, is_top, is_bottom) {
           }
 }
 
-module ejector_comp(card_size, is_top, is_bottom) {
-  ejector_lever_comp(card_size);
+module ejector_comp(card_size, is_top, is_bottom, plunger_only = false) {
+  if (!plunger_only) ejector_lever_comp(card_size);
   ejector_plunger_comp(card_size, is_top, is_bottom);
 }
 
@@ -651,18 +680,21 @@ module block_comp(
   is_bottom,
   engrave,
   include_bevel_rounding,
-  full_design_has_multiple_slots
+  full_design_has_multiple_slots,
+  plunger_only = false
 ) {
   conditional_mirror(mirror_x, [1, 0, 0]) {
     translate([ARRAY_CENTERING_OFFSET_X, 0, 0]) {
-      carvable() casing(
-          card_size, include_bevel_rounding,
-          full_design_has_multiple_slots=full_design_has_multiple_slots
-        );
+      if (!plunger_only) {
+        carvable() casing(
+            card_size, include_bevel_rounding,
+            full_design_has_multiple_slots=full_design_has_multiple_slots
+          );
 
-      card_slot_comp(card_size, card_tab_negative_size);
-      ejector_comp(card_size, is_top, is_bottom);
-      color("blue") springs_comp(card_size);
+        card_slot_comp(card_size, card_tab_negative_size);
+        color("blue") springs_comp(card_size);
+      }
+      ejector_comp(card_size, is_top, is_bottom, plunger_only=plunger_only);
 
       if (DEBUG_SHOW_CROSS_SECTION) {
         negative() translate([0, 0, LARGE_VALUE / 2]) cube(LARGE_VALUE, center=true);
@@ -684,7 +716,8 @@ module block_array_unrounded_comp(
   card_tab_negative_size,
   include_engraving = true,
   use_tiling_offset = false,
-  full_design_has_multiple_slots
+  full_design_has_multiple_slots,
+  plunger_only = false
 ) {
   for (i = [0:n - 1]) {
     is_top = i == n - 1;
@@ -695,10 +728,16 @@ module block_array_unrounded_comp(
         0,
         i * (slot_bottom_distance_z(card_size)),
       ]
-    ) block_comp(
+    ) {
+      block_comp(
         card_size, i % 2 == 1, card_type_label, card_tab_negative_size, is_top, is_bottom,
-        include_engraving && is_top, false, full_design_has_multiple_slots
+        include_engraving && is_top, false, full_design_has_multiple_slots,
+        plunger_only=plunger_only
       );
+      if (i % 2 == 0) {
+        cuboid([LARGE_VALUE, 2, slot_bottom_distance_z(card_size)], anchor=TOP);
+      }
+    }
   }
 }
 
@@ -709,38 +748,42 @@ module block_array(
   card_tab_negative_size,
   include_engraving = true,
   use_tiling_offset = false,
-  full_design_has_multiple_slots
+  full_design_has_multiple_slots,
+  plunger_only = false
 ) {
   full_design_has_multiple_slots = n > 1;
   render() translate(
       DEBUG ? [0, 0, 0]
       : -[0, card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER + CASE_BACK_THICKNESS, 0]
     ) compose() {
-        render() carvable() difference() {
-              render() block_array_unrounded_comp(
-                  n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size,
-                  card_type_label=card_type_label, full_design_has_multiple_slots=full_design_has_multiple_slots,
-                  $compose_mode="carvable"
-                );
+        if (!plunger_only) {
+          render() carvable() difference() {
+                render() block_array_unrounded_comp(
+                    n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size,
+                    card_type_label=card_type_label, full_design_has_multiple_slots=full_design_has_multiple_slots,
+                    $compose_mode="carvable"
+                  );
 
-              color("orange") render() minkowski_shell() {
-                    translate([ARRAY_CENTERING_OFFSET_X * (full_design_has_multiple_slots ? 1 : 1 / 2), 0, 0])
-                      casing(
-                        card_size, BEVEL_ROUNDING, extra_height=(n - 1) * slot_bottom_distance_z(card_size),
-                        full_design_has_multiple_slots=full_design_has_multiple_slots
-                      );
-                    cube(BEVEL_ROUNDING, center=true);
-                  }
-            }
-        render() negative() block_array_unrounded_comp(
-              n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size,
-              card_type_label=card_type_label, full_design_has_multiple_slots=full_design_has_multiple_slots,
-              $compose_mode="negative"
-            );
+                color("orange") render() minkowski_shell() {
+                      translate([ARRAY_CENTERING_OFFSET_X * (full_design_has_multiple_slots ? 1 : 1 / 2), 0, 0])
+                        casing(
+                          card_size, BEVEL_ROUNDING, extra_height=(n - 1) * slot_bottom_distance_z(card_size),
+                          full_design_has_multiple_slots=full_design_has_multiple_slots
+                        );
+                      cube(BEVEL_ROUNDING, center=true);
+                    }
+              }
+          render() negative() block_array_unrounded_comp(
+                n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size,
+                card_type_label=card_type_label, full_design_has_multiple_slots=full_design_has_multiple_slots,
+                $compose_mode="negative"
+              );
+        }
         render() positive() block_array_unrounded_comp(
               n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size,
               card_type_label=card_type_label, full_design_has_multiple_slots=full_design_has_multiple_slots,
-              $compose_mode="positive"
+              $compose_mode="positive",
+              plunger_only=plunger_only
             );
       }
 }
@@ -749,13 +792,13 @@ tx = [30, 0, 0];
 ty = [0, 20, 0];
 
 translate(-tx + ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, 0]) render()
-      block_array(1, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE);
+      block_array(1, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE, plunger_only=true);
 translate(tx + ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, 0]) render()
-      block_array(1, SD_CARD_SIZE, "SD Card", false);
+      block_array(1, SD_CARD_SIZE, "SD Card", false, plunger_only=true);
 // if (!DEBUG)
 {
   translate(-tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, 0]) render()
-        block_array(NUM_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE);
+        block_array(NUM_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE, plunger_only=true);
   translate(tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, 0]) render()
-        block_array(NUM_SLOTS, SD_CARD_SIZE, "SD Card", false);
+        block_array(NUM_SLOTS, SD_CARD_SIZE, "SD Card", false, plunger_only=true);
 }
