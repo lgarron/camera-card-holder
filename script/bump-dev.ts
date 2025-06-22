@@ -7,8 +7,8 @@ if (gitStatus.length !== 0) {
 
 const devVersion = (await $`repo version bump dev`.text()).trim();
 const version = devVersion.replace(/\-dev.*/, "");
-await $`mv *.scad "Camera card holder ${version}.scad"`;
-await $`rm -f *.3mf`;
+await $`mv ./*.scad "./Camera card holder ${version}.scad"`;
+await $`rm -f ./dist/*.3mf`;
 const file = (await $`ls *.scad`.text()).trim();
 await $`cat ${file} | sed "s#^VERSION_TEXT = .*#VERSION_TEXT = ${JSON.stringify(version)};#" | sponge ${file}`;
 
