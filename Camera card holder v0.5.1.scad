@@ -1,4 +1,4 @@
-VARIANT = "default"; // ["default", "dual-color", "dual-color.deep-secondary-color", "CFExpress-B", "6-slots", "8-slots", "8-slots.dual-color.deep-secondary-color"]
+VARIANT = "default"; // ["default", "dual-color", "dual-color.deep-secondary-color", "CFExpress-B", "6-slots", "8-slots", "8-slots.dual-color.deep-secondary-color", "CFExpress-B.8-slots.dual-color.deep-secondary-color"]
 
 DEBUG_EXCLUDE_CASING = false;
 
