@@ -17,6 +17,10 @@ publish:
 bump-dev:
 	bun run ./script/bump-dev.ts
 
+.PHONY: clean
+clean:
+	rm -rf ./dist
+
 .PHONY: reset
-reset:
+reset: clean
 	rm -rf ./node_modules
