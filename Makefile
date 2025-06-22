@@ -1,6 +1,6 @@
 .PHONY: build
 build: bun-install
-	openscad-auto ./*.scad
+	openscad-auto --output-dir dist ./*.scad
 
 .PHONY: setup
 setup: bun-install
