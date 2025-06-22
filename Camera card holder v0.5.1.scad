@@ -84,6 +84,7 @@ $fn = 180;
 ## v0.5.1
 
 - Add extra clearance for H2D tolerances.
+- Increase casing outer thickness for (hopefully) more reliable printability and stability.
 
 ## v0.5.0
 
@@ -292,9 +293,10 @@ SD_CARD_SIZE = [24, 32.0, 2.1];
 
 CLEARANCE = 0.15;
 
-DEFAULT_MARGIN = 3;
-CASE_BACK_THICKNESS = 1;
-CASE_MARGIN_Z = 1.5;
+CASING_OUTER_THICKNESS_X = 3.5;
+CASING_BACK_THICKNESS = 1;
+CASING_INNER_THICKNESS_Z = 1.5;
+CASING_OUTER_THICKNESS_Z = 2;
 
 FUNNEL_DEPTH = 2.5;
 FUNNEL_DEFAULT_MARGIN_Z = 1;
@@ -313,9 +315,9 @@ TOTAL_EXTRA_WIDTH_FOR_EJECTOR = WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_W
 
 EXTRA_CLEARANCE_FOR_H2D = 0.2;
 
-function slot_bottom_distance_z(card_size) = card_size.z + CASE_MARGIN_Z + CLEARANCE;
+function slot_bottom_distance_z(card_size) = card_size.z + CASING_INNER_THICKNESS_Z + CLEARANCE;
 function slot_width_distance_x(card_size) =
-  card_size.x + 2 * SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X + CASE_MARGIN_Z;
+  card_size.x + 2 * SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X + CASING_INNER_THICKNESS_Z;
 
 module casing(card_size, include_bevel_rounding, extra_height = 0, full_design_has_multiple_slots = false) {
   translate([full_design_has_multiple_slots ? 0 : TOTAL_EXTRA_WIDTH_FOR_EJECTOR / 2, 0, extra_height / 2])
@@ -323,9 +325,9 @@ module casing(card_size, include_bevel_rounding, extra_height = 0, full_design_h
       bevel_rounding_value = (include_bevel_rounding ? 2 * BEVEL_ROUNDING : 0);
       cuboid(
         card_size + [
-          DEFAULT_MARGIN * 2 - bevel_rounding_value + TOTAL_EXTRA_WIDTH_FOR_EJECTOR * (full_design_has_multiple_slots ? 2 : 1),
-          CASE_BACK_THICKNESS + STICK_OUT_MARGIN_Z - bevel_rounding_value + EXTRA_BACK_DEPTH_FOR_LEVER,
-          2 * CASE_MARGIN_Z - bevel_rounding_value + extra_height,
+          CASING_OUTER_THICKNESS_X * 2 - bevel_rounding_value + TOTAL_EXTRA_WIDTH_FOR_EJECTOR * (full_design_has_multiple_slots ? 2 : 1),
+          CASING_BACK_THICKNESS + STICK_OUT_MARGIN_Z - bevel_rounding_value + EXTRA_BACK_DEPTH_FOR_LEVER,
+          2 * CASING_OUTER_THICKNESS_Z - bevel_rounding_value + extra_height,
         ],
         anchor=FRONT
       );
@@ -351,24 +353,14 @@ module funnel_comp(card_size) {
     }
 }
 
-module air_hole_comp(card_size) {
-  negative() translate(
-      [
-        card_size.x * -1 / 4,
-        card_size.y + STICK_OUT_MARGIN_Z - _EPSILON + EXTRA_BACK_DEPTH_FOR_LEVER,
-        -card_size.z / 2 - CLEARANCE,
-      ]
-    ) cube([card_size.x * 1 / 2, DEFAULT_MARGIN + 2 * _EPSILON, card_size.z * 1 / 3]);
-}
-
 module engraving_comp(card_size, card_type_label) {
   negative() render() union() {
         // Version engraving
         translate(
           [
             0,
-            (DEFAULT_MARGIN + card_size.y + STICK_OUT_MARGIN_Z) / 2,
-            card_size.z * 1 / 2 + CASE_MARGIN_Z - TEXT_ENGRAVING_DEPTH,
+            (CASING_OUTER_THICKNESS_X + card_size.y + STICK_OUT_MARGIN_Z) / 2,
+            card_size.z * 1 / 2 + CASING_OUTER_THICKNESS_Z - TEXT_ENGRAVING_DEPTH,
           ]
         ) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
             text(VERSION_TEXT, size=5, font="Ubuntu:style=bold", halign="center", valign="center");
@@ -377,8 +369,8 @@ module engraving_comp(card_size, card_type_label) {
         translate(
           [
             0,
-            (DEFAULT_MARGIN + card_size.y + STICK_OUT_MARGIN_Z) / 2 - 7,
-            card_size.z * 1 / 2 + CASE_MARGIN_Z - TEXT_ENGRAVING_DEPTH,
+            (CASING_OUTER_THICKNESS_X + card_size.y + STICK_OUT_MARGIN_Z) / 2 - 7,
+            card_size.z * 1 / 2 + CASING_OUTER_THICKNESS_Z - TEXT_ENGRAVING_DEPTH,
           ]
         ) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
             text(card_type_label, size=3, font="Ubuntu:style=bold", halign="center", valign="center");
@@ -447,19 +439,19 @@ EJECTOR_LEVER_OFFSET_ANGLED_Y = EJECTOR_AXLE_RADIUS;
 EJECTOR_LEVER_ROUNDING = EJECTOR_AXLE_RADIUS / 2;
 EJECTOR_LEVER_PRINTING_ANGLE = PLUNGER_PUSHED_IN ? 40 : 0;
 
-EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT = CASE_MARGIN_Z * 1 / 2;
+EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT = CASING_INNER_THICKNESS_Z * 1 / 2;
 
 AXLE_INSET = 0.7;
 AXLE_INSET_CLEARANCE = 0.6;
 
 module ejector_axle_hole_snappable_print_supports(card_size) {
-  duplicate_and_mirror([0, 0, 1]) translate([0, 0, card_size.z / 2 + CASE_MARGIN_Z / 2 - AXLE_INSET / 2])
+  duplicate_and_mirror([0, 0, 1]) translate([0, 0, card_size.z / 2 + CASING_INNER_THICKNESS_Z / 2 - AXLE_INSET / 2])
       cuboid(
         [
           EJECTOR_AXLE_RADIUS * 1 / 4,
           (EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2 + 2 * _EPSILON) / 2,
           EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT,
-          // card_size.z + 2 * CASE_MARGIN_Z + 2 * _EPSILON + 2 *
+          // card_size.z + 2 * CASING_INNER_THICKNESS_Z + 2 * _EPSILON + 2 *
           // _EPSILON
         ],
         anchor=FRONT
@@ -476,7 +468,7 @@ module untranslated_axle_hole(card_size) {
   union() {
 
     cylinder(
-      h=card_size.z + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
+      h=card_size.z + 2 * CASING_INNER_THICKNESS_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
       r=EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_CLEARANCE, center=true
     );
 
@@ -485,7 +477,7 @@ module untranslated_axle_hole(card_size) {
         [
           EJECTOR_AXLE_RADIUS * 2 * 2 / 3,
           EJECTOR_AXLE_RADIUS + CLEARANCE + EJECTOR_AXLE_CLEARANCE,
-          card_size.z + 2 * CASE_MARGIN_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
+          card_size.z + 2 * CASING_INNER_THICKNESS_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
         ],
         anchor=FRONT
       );
@@ -529,7 +521,7 @@ module ejector_lever_comp(card_size) {
 
     // Axle
     positive()
-      cylinder(h=card_size.z + 2 * CASE_MARGIN_Z - 2 * AXLE_INSET, r=EJECTOR_AXLE_RADIUS, center=true);
+      cylinder(h=card_size.z + 2 * CASING_INNER_THICKNESS_Z - 2 * AXLE_INSET, r=EJECTOR_AXLE_RADIUS, center=true);
 
     // Lever
     lever_values_struct = struct_set(
@@ -818,7 +810,7 @@ module block_array(
   full_design_has_multiple_slots = n > 1;
   render() translate(
       DEBUG ? [0, 0, 0]
-      : -[0, card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER + CASE_BACK_THICKNESS, 0]
+      : -[0, card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER + CASING_BACK_THICKNESS, 0]
     ) compose() {
         if (!plungers_only && !color_layers_only) {
           render() carvable() difference() {
@@ -909,7 +901,7 @@ module block_array_secondary_color_mask(
       full_design_has_multiple_slots=full_design_has_multiple_slots,
       plungers_only="even"
     );
-    translate([0, -(card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER + CASE_BACK_THICKNESS) + COLORING_DEPTH, 0])
+    translate([0, -(card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER + CASING_BACK_THICKNESS) + COLORING_DEPTH, 0])
       cuboid(LARGE_VALUE, anchor=BACK);
   }
 }
