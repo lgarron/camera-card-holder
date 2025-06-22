@@ -65,7 +65,7 @@ DEEP_SECONDARY_COLOR = get_parameter("DEEP_SECONDARY_COLOR");
 NUM_SLOTS = get_parameter("NUM_SLOTS");
 CF_EXPRESS_B = get_parameter("CF_EXPRESS_B");
 
-VERSION_TEXT = "v0.5.0";
+VERSION_TEXT = "v0.5.1";
 
 DEBUG = false;
 DEBUG_SHOW_CROSS_SECTION = DEBUG;
