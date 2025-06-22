@@ -1,8 +1,12 @@
 VARIANT = "default"; // ["default", "dual-color", "dual-color.deep-secondary-color", "CFExpress-B", "6-slots", "8-slots", "8-slots.dual-color.deep-secondary-color"]
 
+DEBUG_EXCLUDE_CASING = false;
+
 // This empty block prevents any following `CONSTANT_CASE` variables from being settable in the customizer.
 // This prevents pathological interactions with persisted customizer values that are meant to be controlled exclusively by `VARIANT`.
 {};
+
+VERSION_TEXT = "v0.5.1";
 
 VARIANT_DATA = [
   [
@@ -65,8 +69,6 @@ DEEP_SECONDARY_COLOR = get_parameter("DEEP_SECONDARY_COLOR");
 NUM_SLOTS = get_parameter("NUM_SLOTS");
 CF_EXPRESS_B = get_parameter("CF_EXPRESS_B");
 
-VERSION_TEXT = "v0.5.1";
-
 DEBUG = false;
 DEBUG_SHOW_CROSS_SECTION = DEBUG;
 ROTATE_FOR_PRINTING = !DEBUG;
@@ -78,6 +80,10 @@ STICK_OUT_MARGIN_Z = 0;
 $fn = 180;
 
 /*
+
+## v0.5.1
+
+- Add extra clearance for H2D tolerances.
 
 ## v0.5.0
 
@@ -305,6 +311,8 @@ EJECTOR_RETAINERS_TOTAL_HEIGHT = 2; // Top and bottom accoutn for half each.
 
 TOTAL_EXTRA_WIDTH_FOR_EJECTOR = WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X;
 
+EXTRA_CLEARANCE_FOR_H2D = 0.2;
+
 function slot_bottom_distance_z(card_size) = card_size.z + CASE_MARGIN_Z + CLEARANCE;
 function slot_width_distance_x(card_size) =
   card_size.x + 2 * SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X + CASE_MARGIN_Z;
@@ -459,7 +467,6 @@ module ejector_axle_hole_snappable_print_supports(card_size) {
 }
 
 LEVER_PRINT_SUPPORT_WIDTH = 0.5;
-LEVER_PRINT_SUPPORT_HEIGHT = 2;
 
 LEVER_SCALE = 1.5;
 LEVER_OFFSET = 1;
@@ -500,6 +507,8 @@ module lever_intersection_base(lever_values_struct, rotate_deep_side) {
 LEVER_TORQUE_SMOOTHING_CURVE_SCALE = 2;
 
 module ejector_lever_comp(card_size) {
+  lever_thickness = card_size.z - EXTRA_CLEARANCE_FOR_H2D * 2;
+
   // Ejector back area
   negative() translate([card_size.x * 1 / 2, card_size.y + STICK_OUT_MARGIN_Z, 0]) cuboid(
         [
@@ -537,7 +546,7 @@ module ejector_lever_comp(card_size) {
         card_size.x * LEVER_SCALE,
         //
         "lever_core_size",
-        _x_(card_size, LEVER_SCALE) + _z_(card_size) + [0, EJECTOR_LEVER_WIDTH, 0] - [2 * EJECTOR_LEVER_ROUNDING, 2 * EJECTOR_LEVER_ROUNDING, -_EPSILON],
+        _x_(card_size, LEVER_SCALE) + _z_(lever_thickness) + [0, EJECTOR_LEVER_WIDTH, 0] - [2 * EJECTOR_LEVER_ROUNDING, 2 * EJECTOR_LEVER_ROUNDING, -_EPSILON],
       ]
     );
     local_offset_1 = _x_(struct_val(lever_values_struct, "lever_core_size"), -1 / 2);
@@ -548,7 +557,7 @@ module ejector_lever_comp(card_size) {
               translate([SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE + LEVER_OFFSET, 0, 0])
                 difference() {
                   translate([0, lever_offset_y, 0]) cuboid(
-                      _x_(card_size, LEVER_SCALE) + _z_(card_size) + [0, EJECTOR_AXLE_RADIUS, 0], anchor=RIGHT
+                      _x_(card_size, LEVER_SCALE) + _z_(lever_thickness) + [0, EJECTOR_AXLE_RADIUS, 0], anchor=RIGHT
                     );
 
                   translate(-_x_(card_size, LEVER_SCALE / 2) + [0, lever_offset_y, 0])
@@ -586,7 +595,7 @@ module ejector_lever_comp(card_size) {
     color("purple") difference() {
         union() {
           cuboid(
-            [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, LEVER_PRINT_SUPPORT_HEIGHT],
+            [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, lever_thickness],
             anchor=FRONT
           );
 
@@ -594,7 +603,7 @@ module ejector_lever_comp(card_size) {
                 [5.25, 0, 0]
               ) translate([5.25, 0, 0]) rotate([0, 0, -EJECTOR_LEVER_PRINTING_ANGLE])
                     cuboid(
-                      [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, LEVER_PRINT_SUPPORT_HEIGHT],
+                      [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, lever_thickness],
                       anchor=FRONT
                     );
         }
@@ -604,7 +613,7 @@ module ejector_lever_comp(card_size) {
   }
 }
 
-EJECTOR_PLUNGER_ANNULAR_CLEARANCE = 0.2;
+EJECTOR_PLUNGER_ANNULAR_CLEARANCE = 0.2 + EXTRA_CLEARANCE_FOR_H2D;
 
 EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT = 1; // TODO
 
@@ -728,10 +737,12 @@ module block_comp(
   conditional_mirror(mirror_x, [1, 0, 0]) {
     translate([ARRAY_CENTERING_OFFSET_X, 0, 0]) {
       if (!plungers_only) {
-        carvable() casing(
-            card_size, include_bevel_rounding,
-            full_design_has_multiple_slots=full_design_has_multiple_slots
-          );
+        if (!DEBUG_EXCLUDE_CASING) {
+          carvable() casing(
+              card_size, include_bevel_rounding,
+              full_design_has_multiple_slots=full_design_has_multiple_slots
+            );
+        }
 
         card_slot_comp(card_size, card_tab_negative_size);
         color("blue") springs_comp(card_size);
@@ -998,5 +1009,5 @@ if (DUAL_COLOR) {
   group("primary_color") color("blue") parts(primary_color=true);
   group("secondary_color") color("red") parts(primary_color=false);
 } else {
-  group("secondary_color") parts(primary_color=undef);
+  group("single_color") parts(primary_color=undef);
 }
