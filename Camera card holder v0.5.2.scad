@@ -81,6 +81,12 @@ $fn = 180;
 
 /*
 
+## v0.5.2
+
+- Decrease extra clearance.
+- Add SD card size tweaks.
+- Rotate final result 180° to allow placing the scarf in the back.
+
 ## v0.5.1
 
 - Add extra clearance for H2D tolerances.
@@ -290,6 +296,7 @@ CFEXPRESS_CARD_TAB_NEGATIVE_SIZE = [11, 1, 1];
 
 SD_CARD_SIZE = [24, 32.0, 2.1];
 // SD_CARD_LOWER_INDENT_SIZE = [ 1.00, 33.65, 0.70 ];
+SD_CARD_ADJUSTMENTS = [-0.5, 1, 0];
 
 CLEARANCE = 0.15;
 
@@ -313,7 +320,7 @@ EJECTOR_RETAINERS_TOTAL_HEIGHT = 2; // Top and bottom accoutn for half each.
 
 TOTAL_EXTRA_WIDTH_FOR_EJECTOR = WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X;
 
-EXTRA_CLEARANCE_FOR_H2D = 0.2;
+EXTRA_CLEARANCE_FOR_H2D = 0.1;
 
 function slot_bottom_distance_z(card_size) = card_size.z + CASING_INNER_THICKNESS_Z + CLEARANCE;
 function slot_width_distance_x(card_size) =
@@ -587,17 +594,17 @@ module ejector_lever_comp(card_size) {
     color("purple") difference() {
         union() {
           cuboid(
-            [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, lever_thickness],
+            [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, lever_thickness / 2],
             anchor=FRONT
           );
 
-          translate([0, -1, 0]) rotate([0, 0, EJECTOR_LEVER_PRINTING_ANGLE]) duplicate_and_translate(
-                [5.25, 0, 0]
-              ) translate([5.25, 0, 0]) rotate([0, 0, -EJECTOR_LEVER_PRINTING_ANGLE])
-                    cuboid(
-                      [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, lever_thickness],
-                      anchor=FRONT
-                    );
+          // translate([0, -1, 0]) rotate([0, 0, EJECTOR_LEVER_PRINTING_ANGLE]) duplicate_and_translate(
+          //       [5.25, 0, 0]
+          //     ) translate([5.25, 0, 0]) rotate([0, 0, -EJECTOR_LEVER_PRINTING_ANGLE])
+          //           cuboid(
+          //             [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, lever_thickness / 2],
+          //             anchor=FRONT
+          //           );
         }
         translate([0, axle_center_to_back_y + _EPSILON, 0])
           cuboid([LARGE_VALUE, LARGE_VALUE, LARGE_VALUE], anchor=FRONT);
@@ -945,12 +952,14 @@ module block_array_color(
   include_engraving = true,
   use_tiling_offset = false,
   full_design_has_multiple_slots,
-  primary_color
+  primary_color,
+  card_size_negative_adjust = [0, 0, 0]
 ) {
+  squished_card_size = card_size + card_size_negative_adjust;
   if (is_undef(primary_color)) {
     block_array(
       n=n,
-      card_size=card_size,
+      card_size=squished_card_size,
       card_type_label=card_type_label,
       card_tab_negative_size=card_tab_negative_size,
       include_engraving=include_engraving,
@@ -960,7 +969,7 @@ module block_array_color(
   } else if (primary_color) {
     block_array_primary_color(
       n=n,
-      card_size=card_size,
+      card_size=squished_card_size,
       card_type_label=card_type_label,
       card_tab_negative_size=card_tab_negative_size,
       include_engraving=include_engraving,
@@ -970,7 +979,7 @@ module block_array_color(
   } else {
     block_array_secondary_color_mask(
       n=n,
-      card_size=card_size,
+      card_size=squished_card_size,
       card_type_label=card_type_label,
       card_tab_negative_size=card_tab_negative_size,
       include_engraving=include_engraving,
@@ -988,11 +997,11 @@ module parts(primary_color = under) {
   // if (!DEBUG)
   {
     if (CF_EXPRESS_B) {
-      translate(-tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, 0]) render()
+      translate(-tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
             block_array_color(NUM_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE, primary_color=primary_color);
     } else {
-      translate(tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, 0]) render()
-            block_array_color(NUM_SLOTS, SD_CARD_SIZE, "SD Card", false, primary_color=primary_color);
+      translate(tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
+            block_array_color(NUM_SLOTS, SD_CARD_SIZE, "SD Card", false, primary_color=primary_color, card_size_negative_adjust=SD_CARD_ADJUSTMENTS);
     }
   }
 }
