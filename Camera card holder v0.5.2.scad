@@ -6,7 +6,7 @@ DEBUG_EXCLUDE_CASING = false;
 // This prevents pathological interactions with persisted customizer values that are meant to be controlled exclusively by `VARIANT`.
 {};
 
-VERSION_TEXT = "v0.5.1";
+VERSION_TEXT = "v0.5.2";
 
 VARIANT_DATA = [
   [
