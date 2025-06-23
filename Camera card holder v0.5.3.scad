@@ -81,6 +81,12 @@ $fn = 180;
 
 /*
 
+## v0.5.3
+
+- Add plunger recess.
+- Add card slot depth.
+- Change label from "SD Card" to "SD Cards".
+
 ## v0.5.2
 
 - Decrease extra clearance.
@@ -290,13 +296,14 @@ include <./node_modules/scad/vendor/BOSL2/std.scad>
 include <./node_modules/scad/xyz.scad>
 
 CFEXPRESS_B_CARD_SIZE = [29.60, 38.55, 3.85];
-CFEXPRESS_CARD_TAB_NEGATIVE_SIZE = [11, 1, 1];
+CFEXPRESS_CARD_TAB_NEGATIVE_SIZE = [11, 1.5, 1];
+CFEXPRESS_B_ADJUSTMENTS = [0, 0.5, 0];
 
 // CFEXPRESS_B_UPPER_INDENT_SIZE = [ 1.00, 33.65, 0.55 ];
 
 SD_CARD_SIZE = [24, 32.0, 2.1];
 // SD_CARD_LOWER_INDENT_SIZE = [ 1.00, 33.65, 0.70 ];
-SD_CARD_ADJUSTMENTS = [-0.5, 1, 0];
+SD_CARD_ADJUSTMENTS = [-0.25, 1, 0];
 
 CLEARANCE = 0.15;
 
@@ -635,12 +642,14 @@ function plunger_back_rounding_center(card_size) =
 
 PLUNGER_ROUNDING_FN = 32; // If this value is higher, render times go *waaaay* up.
 
-module plunger_retainer(card_size, extra_height, subtract_width = 0) {
+PLUNGER_FRONT_RECESS = 1;
+module plunger_retainer(card_size, extra_height, subtract_width = 0, recess = false) {
   depth = SD_CARD_SIZE.y * 1 / 5;
+  recess_amount = recess ? PLUNGER_FRONT_RECESS : 0;
 
   plunger_hook_size = _z_(card_size) + [EJECTOR_PLUNGER_WIDTH_X - subtract_width, depth, 0];
   render() translate(_x_(card_size) / 2 + [SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR, 0, 0]) render() minkowski() {
-          render() cuboid(plunger_hook_size, anchor=RIGHT + FRONT);
+          render() translate([0, recess_amount, 0]) cuboid(plunger_hook_size - _y_(recess_amount), anchor=RIGHT + FRONT);
 
           render() translate([-EJECTOR_RETAINER_EXTRA_WIDTH / 2, 0, 0])
               skew(xy=90 - PLUNGER_RETAINER_BACK_SLOPE_ANGLE) render()
@@ -655,16 +664,16 @@ module plunger_retainer(card_size, extra_height, subtract_width = 0) {
 module ejector_plunger(card_size, is_top, is_bottom) {
   render() union() {
       translate(
-        _x_(card_size, 1 / 2) + [SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X, 0, 0]
+        _x_(card_size, 1 / 2) + [SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X, PLUNGER_FRONT_RECESS, 0]
       )
         cuboid(
-          _z_(card_size) + [EJECTOR_PLUNGER_WIDTH_X, plunger_back_rounding_center(card_size).y, 0],
+          _z_(card_size) + [EJECTOR_PLUNGER_WIDTH_X, plunger_back_rounding_center(card_size).y - PLUNGER_FRONT_RECESS, 0],
           anchor=RIGHT + FRONT
         );
 
-      plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT);
+      plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT, recess=true);
       render() difference() {
-          plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT + card_size.z, subtract_width=1);
+          plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT + card_size.z, subtract_width=1, recess=true);
           if (is_top) {
             cuboid(LARGE_VALUE, anchor=BOTTOM);
           }
@@ -1001,7 +1010,7 @@ module parts(primary_color = under) {
             block_array_color(NUM_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE, primary_color=primary_color);
     } else {
       translate(tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
-            block_array_color(NUM_SLOTS, SD_CARD_SIZE, "SD Card", false, primary_color=primary_color, card_size_negative_adjust=SD_CARD_ADJUSTMENTS);
+            block_array_color(NUM_SLOTS, SD_CARD_SIZE, "SD Cards", false, primary_color=primary_color, card_size_negative_adjust=SD_CARD_ADJUSTMENTS);
     }
   }
 }
