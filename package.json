@@ -1,6 +1,6 @@
 {
 	"name": "@lgarron-3d/camera-card-holder",
-	"version": "0.5.3-dev",
+	"version": "0.5.4-dev",
 	"license": "CC-BY-NC-SA-4.0",
 	"dependencies": {
 		"scad": "v0.15.1"
