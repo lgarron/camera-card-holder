@@ -1,4 +1,4 @@
-VARIANT = "default"; // ["default", "dual-color", "dual-color.deep-secondary-color", "CFExpress-B", "6-slots", "8-slots", "8-slots.dual-color.deep-secondary-color", "CFExpress-B.8-slots.dual-color.deep-secondary-color"]
+VARIANT = "default"; // ["default", "dual-color", "dual-color.deep-secondary-color", "CFExpress-B", "6-slots", "8-slots", "CFExpress-B.8-slots", "8-slots.dual-color.deep-secondary-color", "CFExpress-B.8-slots.dual-color.deep-secondary-color"]
 
 DEBUG_EXCLUDE_CASING = false;
 
@@ -303,7 +303,7 @@ CFEXPRESS_B_ADJUSTMENTS = [0, 0.5, 0];
 
 SD_CARD_SIZE = [24, 32.0, 2.1];
 // SD_CARD_LOWER_INDENT_SIZE = [ 1.00, 33.65, 0.70 ];
-SD_CARD_ADJUSTMENTS = [-0.25, 1, 0];
+SD_CARD_ADJUSTMENTS = [-0.25, 0.5, 0];
 
 CLEARANCE = 0.15;
 
@@ -661,31 +661,38 @@ module plunger_retainer(card_size, extra_height, subtract_width = 0, recess = fa
         }
 }
 
+PLUNGER_PRINTING_OFFSET = 0.4;
+PLUNGER_PRINTING_SUPPORT_RADIUS = 0.3;
+
 module ejector_plunger(card_size, is_top, is_bottom) {
-  render() union() {
-      translate(
-        _x_(card_size, 1 / 2) + [SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X, PLUNGER_FRONT_RECESS, 0]
-      )
-        cuboid(
-          _z_(card_size) + [EJECTOR_PLUNGER_WIDTH_X, plunger_back_rounding_center(card_size).y - PLUNGER_FRONT_RECESS, 0],
-          anchor=RIGHT + FRONT
-        );
+  fwd(PLUNGER_PRINTING_OFFSET) union() {
+      render() {
+        translate(
+          _x_(card_size, 1 / 2) + [SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X, PLUNGER_FRONT_RECESS, 0]
+        )
+          cuboid(
+            _z_(card_size) + [EJECTOR_PLUNGER_WIDTH_X, plunger_back_rounding_center(card_size).y - PLUNGER_FRONT_RECESS, 0],
+            anchor=RIGHT + FRONT
+          );
 
-      plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT, recess=true);
-      render() difference() {
-          plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT + card_size.z, subtract_width=1, recess=true);
-          if (is_top) {
-            cuboid(LARGE_VALUE, anchor=BOTTOM);
-          }
-          if (is_bottom) {
-            cuboid(LARGE_VALUE, anchor=TOP);
-          }
-        }
+        plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT, recess=true);
 
-      render() translate(_y_(card_size, 1 / 2)) intersection() {
-            plunger_retainer(card_size, _EPSILON);
-            cuboid([LARGE_VALUE, LARGE_VALUE, card_size.z], anchor=LEFT + FRONT);
+        plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT, recess=true);
+        render() difference() {
+            plunger_retainer(card_size, EJECTOR_PLUNGER_FRONT_EXTRA_HEIGHT + card_size.z, subtract_width=1, recess=true);
+            if (is_top) {
+              cuboid(LARGE_VALUE, anchor=BOTTOM);
+            }
+            if (is_bottom) {
+              cuboid(LARGE_VALUE, anchor=TOP);
+            }
           }
+
+        render() translate(_y_(card_size, 1 / 2)) intersection() {
+              plunger_retainer(card_size, _EPSILON);
+              cuboid([LARGE_VALUE, LARGE_VALUE, card_size.z], anchor=LEFT + FRONT);
+            }
+      }
     }
 }
 
@@ -710,8 +717,12 @@ module ejector_plunger_comp(card_size, is_top, is_bottom) {
         color("green") union() {
             ejector_plunger(card_size, is_top, is_bottom);
 
-            translate(plunger_back_rounding_center(card_size))
-              cylinder(h=card_size.z, r=EJECTOR_PLUNGER_WIDTH_X / 2, center=true);
+            fwd(PLUNGER_PRINTING_OFFSET)
+              translate(plunger_back_rounding_center(card_size))
+                cylinder(h=card_size.z, r=EJECTOR_PLUNGER_WIDTH_X / 2, center=true);
+            #translate(plunger_back_rounding_center(card_size))
+              rotate([90, 0, 0])
+                cyl(r=PLUNGER_PRINTING_SUPPORT_RADIUS, h=EJECTOR_PLUNGER_WIDTH_X / 2 + PLUNGER_PRINTING_OFFSET * 2, anchor=TOP);
           }
 }
 
