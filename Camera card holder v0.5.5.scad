@@ -1,9 +1,12 @@
 VARIANT = "default"; // ["default", "dual-color", "dual-color.deep-secondary-color", "CFExpress-B", "6-slots", "8-slots", "CFExpress-B.8-slots", "8-slots.dual-color.deep-secondary-color", "CFExpress-B.8-slots.dual-color.deep-secondary-color", "unengraved"]
 
-DEBUG_EXCLUDE_CASING = false;
-
 // Overridden by the `unengraved` variant.
 INCLUDE_ENGRAVING = true;
+
+// Overridden by variants that explicitly set the number of slots.
+NUMBER_OF_SLOTS = 4;
+
+DEBUG_EXCLUDE_CASING = false;
 
 // This empty block prevents any following `CONSTANT_CASE` variables from being settable in the customizer.
 // This prevents pathological interactions with persisted customizer values that are meant to be controlled exclusively by `VARIANT`.
@@ -18,7 +21,7 @@ VARIANT_DATA = [
       [
         ["DUAL_COLOR", false],
         ["DEEP_SECONDARY_COLOR", false],
-        ["NUM_SLOTS", 4],
+        ["VARIANT_NUMBER_OF_SLOTS", NUMBER_OF_SLOTS],
         ["CF_EXPRESS_B", false],
         ["VARIANT_INCLUDE_ENGRAVING", INCLUDE_ENGRAVING],
       ],
@@ -44,7 +47,7 @@ VARIANT_DATA = [
     "6-slots",
     [
       [
-        ["NUM_SLOTS", 6],
+        ["VARIANT_NUMBER_OF_SLOTS", 6],
       ],
     ],
   ],
@@ -52,7 +55,7 @@ VARIANT_DATA = [
     "8-slots",
     [
       [
-        ["NUM_SLOTS", 8],
+        ["VARIANT_NUMBER_OF_SLOTS", 8],
       ],
     ],
   ],
@@ -60,7 +63,7 @@ VARIANT_DATA = [
     "10-slots",
     [
       [
-        ["NUM_SLOTS", 10],
+        ["VARIANT_NUMBER_OF_SLOTS", 10],
       ],
     ],
   ],
@@ -86,7 +89,7 @@ include <./node_modules/scad/variants.scad>
 
 DUAL_COLOR = get_parameter("DUAL_COLOR");
 DEEP_SECONDARY_COLOR = get_parameter("DEEP_SECONDARY_COLOR");
-NUM_SLOTS = get_parameter("NUM_SLOTS");
+VARIANT_NUMBER_OF_SLOTS = get_parameter("VARIANT_NUMBER_OF_SLOTS");
 CF_EXPRESS_B = get_parameter("CF_EXPRESS_B");
 VARIANT_INCLUDE_ENGRAVING = get_parameter("VARIANT_INCLUDE_ENGRAVING");
 
@@ -1039,10 +1042,10 @@ module parts(primary_color = under) {
   {
     if (CF_EXPRESS_B) {
       translate(-tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
-            block_array_color(NUM_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE, primary_color=primary_color, include_engraving=VARIANT_INCLUDE_ENGRAVING);
+            block_array_color(VARIANT_NUMBER_OF_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE, primary_color=primary_color, include_engraving=VARIANT_INCLUDE_ENGRAVING);
     } else {
       translate(tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
-            block_array_color(NUM_SLOTS, SD_CARD_SIZE, "SD Cards", false, primary_color=primary_color, card_size_negative_adjust=SD_CARD_ADJUSTMENTS, include_engraving=VARIANT_INCLUDE_ENGRAVING);
+            block_array_color(VARIANT_NUMBER_OF_SLOTS, SD_CARD_SIZE, "SD Cards", false, primary_color=primary_color, card_size_negative_adjust=SD_CARD_ADJUSTMENTS, include_engraving=VARIANT_INCLUDE_ENGRAVING);
     }
   }
 }
