@@ -1,6 +1,9 @@
-VARIANT = "default"; // ["default", "dual-color", "dual-color.deep-secondary-color", "CFExpress-B", "6-slots", "8-slots", "CFExpress-B.8-slots", "8-slots.dual-color.deep-secondary-color", "CFExpress-B.8-slots.dual-color.deep-secondary-color"]
+VARIANT = "default"; // ["default", "dual-color", "dual-color.deep-secondary-color", "CFExpress-B", "6-slots", "8-slots", "CFExpress-B.8-slots", "8-slots.dual-color.deep-secondary-color", "CFExpress-B.8-slots.dual-color.deep-secondary-color", "unengraved"]
 
 DEBUG_EXCLUDE_CASING = false;
+
+// Overridden by the `unengraved` variant.
+INCLUDE_ENGRAVING = true;
 
 // This empty block prevents any following `CONSTANT_CASE` variables from being settable in the customizer.
 // This prevents pathological interactions with persisted customizer values that are meant to be controlled exclusively by `VARIANT`.
@@ -17,6 +20,7 @@ VARIANT_DATA = [
         ["DEEP_SECONDARY_COLOR", false],
         ["NUM_SLOTS", 4],
         ["CF_EXPRESS_B", false],
+        ["VARIANT_INCLUDE_ENGRAVING", INCLUDE_ENGRAVING],
       ],
     ],
   ],
@@ -60,6 +64,14 @@ VARIANT_DATA = [
       ],
     ],
   ],
+  [
+    "unengraved",
+    [
+      [
+        ["VARIANT_INCLUDE_ENGRAVING", false],
+      ],
+    ],
+  ],
 ];
 
 include <./node_modules/scad/variants.scad>
@@ -68,6 +80,7 @@ DUAL_COLOR = get_parameter("DUAL_COLOR");
 DEEP_SECONDARY_COLOR = get_parameter("DEEP_SECONDARY_COLOR");
 NUM_SLOTS = get_parameter("NUM_SLOTS");
 CF_EXPRESS_B = get_parameter("CF_EXPRESS_B");
+VARIANT_INCLUDE_ENGRAVING = get_parameter("VARIANT_INCLUDE_ENGRAVING");
 
 DEBUG = false;
 DEBUG_SHOW_CROSS_SECTION = DEBUG;
@@ -842,7 +855,7 @@ module block_array(
         if (!plungers_only && !color_layers_only) {
           render() carvable() difference() {
                 render() block_array_unrounded_comp(
-                    n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size,
+                    n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size, include_engraving=include_engraving,
                     card_type_label=card_type_label, full_design_has_multiple_slots=full_design_has_multiple_slots,
                     $compose_mode="carvable"
                   );
@@ -857,13 +870,13 @@ module block_array(
                     }
               }
           render() negative() block_array_unrounded_comp(
-                n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size,
+                n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size, include_engraving=include_engraving,
                 card_type_label=card_type_label, full_design_has_multiple_slots=full_design_has_multiple_slots,
                 $compose_mode="negative"
               );
         }
         render() positive() block_array_unrounded_comp(
-              n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size,
+              n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size, include_engraving=include_engraving,
               card_type_label=card_type_label, full_design_has_multiple_slots=full_design_has_multiple_slots,
               $compose_mode="positive",
               plungers_only=plungers_only,
@@ -1018,10 +1031,10 @@ module parts(primary_color = under) {
   {
     if (CF_EXPRESS_B) {
       translate(-tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
-            block_array_color(NUM_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE, primary_color=primary_color);
+            block_array_color(NUM_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE, primary_color=primary_color, include_engraving=VARIANT_INCLUDE_ENGRAVING);
     } else {
       translate(tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
-            block_array_color(NUM_SLOTS, SD_CARD_SIZE, "SD Cards", false, primary_color=primary_color, card_size_negative_adjust=SD_CARD_ADJUSTMENTS);
+            block_array_color(NUM_SLOTS, SD_CARD_SIZE, "SD Cards", false, primary_color=primary_color, card_size_negative_adjust=SD_CARD_ADJUSTMENTS, include_engraving=VARIANT_INCLUDE_ENGRAVING);
     }
   }
 }
