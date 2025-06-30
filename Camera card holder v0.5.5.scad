@@ -57,6 +57,14 @@ VARIANT_DATA = [
     ],
   ],
   [
+    "10-slots",
+    [
+      [
+        ["NUM_SLOTS", 10],
+      ],
+    ],
+  ],
+  [
     "CFExpress-B",
     [
       [

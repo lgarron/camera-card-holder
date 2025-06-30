@@ -4,7 +4,7 @@ build: bun-install
 
 .PHONY: build-for-publish
 build-for-publish: clean
-	openscad-auto --variants "unengraved,CFExpress-B.unengraved,6-slots.unengraved,CFExpress-B.6-slots.unengraved,8-slots.unengraved,CFExpress-B.8-slots.unengraved --output-dir dist ./*.scad
+	openscad-auto --variants "unengraved,CFExpress-B.unengraved,6-slots.unengraved,CFExpress-B.6-slots.unengraved,8-slots.unengraved,CFExpress-B.8-slots.unengraved,10-slots.unengraved,CFExpress-B.10-slots.unengraved" --output-dir dist ./*.scad
 
 .PHONY: setup
 setup: bun-install
