@@ -1,0 +1,10 @@
+cat 1.scad >mono.scad
+cat ./node_modules/scad/variants.scad >>mono.scad
+cat 3.scad >>mono.scad
+cat ./node_modules/scad/compose.scad >>mono.scad
+cat ./node_modules/scad/duplicate.scad >>mono.scad
+cat ./node_modules/scad/epsilon.scad >>mono.scad
+cat ./node_modules/scad/minkowski_shell.scad >>mono.scad
+cat ./node_modules/scad/round_bevel.scad >>mono.scad
+cat ./node_modules/scad/xyz.scad >>mono.scad
+cat 5.scad >>mono.scad
