@@ -25,6 +25,7 @@ CASING_DISTANCE_BETWEEN_CARDS_Z = 1.5;
 INCLUDE_DESIGN_VERSION_ENGRAVING = false;
 STRUCTURAL_COLORING = false;
 DEBUG_EXCLUDE_CASING = false;
+DEBUG_SHOW_CROSS_SECTION = false;
 
 /* [Hidden] */
 
@@ -36,15 +37,17 @@ DEEP_SECONDARY_COLOR = false;
 // This prevents pathological interactions with persisted customizer values that are meant to be controlled exclusively by `VARIANT`.
 {};
 
-module structural_color(color) {
-  color(STRUCTURAL_COLORING ? color : "silver") {
+module structural_color(color_choice) {
+  if (STRUCTURAL_COLORING) {
+    color(color_choice) children();
+  } else {
     children();
   }
 }
 
 VARIANT = "default";
 
-VERSION_TEXT = "v0.5.5c";
+VERSION_TEXT = "v0.5.5e";
 
 VARIANT_DATA = [
   [
@@ -264,7 +267,6 @@ CF_EXPRESS_B = get_parameter("CF_EXPRESS_B");
 VARIANT_INCLUDE_DESIGN_VERSION_ENGRAVING = get_parameter("VARIANT_INCLUDE_DESIGN_VERSION_ENGRAVING");
 
 DEBUG = false;
-DEBUG_SHOW_CROSS_SECTION = DEBUG;
 ROTATE_FOR_PRINTING = !DEBUG;
 
 PLUNGER_PUSHED_IN = true;
@@ -826,12 +828,12 @@ module lever_intersection_base(lever_values_struct, rotate_deep_side) {
 }
 
 LEVER_TORQUE_SMOOTHING_CURVE_SCALE = 2;
-
-module ejector_lever_comp(card_size) {
+module ejector_lever_comp(card_size, for_negative = false) {
   lever_thickness = card_size.z - EXTRA_CLEARANCE_FOR_H2D * 2;
 
   // Ejector back area
-  negative() translate([card_size.x * 1 / 2, card_size.y + STICK_OUT_MARGIN_Z, 0]) cuboid(
+  if (for_negative)
+    translate([card_size.x * 1 / 2, card_size.y + STICK_OUT_MARGIN_Z, 0]) cuboid(
         [
           SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X,
           EXTRA_BACK_DEPTH_FOR_LEVER,
@@ -842,95 +844,99 @@ module ejector_lever_comp(card_size) {
 
   translate(ejector_axle_center(card_size)) {
     // Ejector axle hole
-    negative() difference() {
+    if (for_negative)
+      difference() {
         untranslated_axle_hole(card_size);
 
         ejector_axle_hole_snappable_print_supports(card_size);
       }
 
-    // Axle
-    positive()
-      cylinder(h=card_size.z + 2 * CASING_DISTANCE_BETWEEN_CARDS_Z - 2 * AXLE_INSET, r=EJECTOR_AXLE_RADIUS, center=true);
+    if (!for_negative) {
 
-    // Lever
-    lever_values_struct = struct_set(
-      [], [
-        //
-        "lever_offset",
-        [
-          -card_size.x * LEVER_SCALE / 2 + SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE + LEVER_OFFSET,
-          EJECTOR_LEVER_OFFSET_ANGLED_Y,
-          0,
-        ],
-        //
-        "large_value_for_y",
-        card_size.x * LEVER_SCALE,
-        //
-        "lever_core_size",
-        _x_(card_size, LEVER_SCALE) + _z_(lever_thickness) + [0, EJECTOR_LEVER_WIDTH, 0] - [2 * EJECTOR_LEVER_ROUNDING, 2 * EJECTOR_LEVER_ROUNDING, -_EPSILON],
-      ]
-    );
-    local_offset_1 = _x_(struct_val(lever_values_struct, "lever_core_size"), -1 / 2);
-    local_offset_2 = _y_(struct_val(lever_values_struct, "lever_core_size"), -1 / 2) + struct_val(lever_values_struct, "lever_offset");
-    structural_color("purple") positive() rotate([0, 0, EJECTOR_LEVER_PRINTING_ANGLE]) difference() {
-            union() {
-              lever_offset_y = -EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_RADIUS / 2;
-              translate([SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE + LEVER_OFFSET, 0, 0])
-                difference() {
-                  translate([0, lever_offset_y, 0]) cuboid(
-                      _x_(card_size, LEVER_SCALE) + _z_(lever_thickness) + [0, EJECTOR_AXLE_RADIUS, 0], anchor=RIGHT
-                    );
+      // Axle
+      positive()
+        cylinder(h=card_size.z + 2 * CASING_DISTANCE_BETWEEN_CARDS_Z - 2 * AXLE_INSET, r=EJECTOR_AXLE_RADIUS, center=true);
 
-                  translate(-_x_(card_size, LEVER_SCALE / 2) + [0, lever_offset_y, 0])
-                    duplicate_and_mirror([0, 1, 0]) duplicate_and_mirror()
-                        translate(_x_(card_size, -LEVER_SCALE / 2) + [0, -EJECTOR_AXLE_RADIUS / 2, 0])
-                          round_bevel_complement(
-                            height=card_size.z + 2 * _EPSILON,
-                            radius=EJECTOR_AXLE_RADIUS / 2, center_z=true
-                          );
-                }
+      // Lever
+      lever_values_struct = struct_set(
+        [], [
+          //
+          "lever_offset",
+          [
+            -card_size.x * LEVER_SCALE / 2 + SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE + LEVER_OFFSET,
+            EJECTOR_LEVER_OFFSET_ANGLED_Y,
+            0,
+          ],
+          //
+          "large_value_for_y",
+          card_size.x * LEVER_SCALE,
+          //
+          "lever_core_size",
+          _x_(card_size, LEVER_SCALE) + _z_(lever_thickness) + [0, EJECTOR_LEVER_WIDTH, 0] - [2 * EJECTOR_LEVER_ROUNDING, 2 * EJECTOR_LEVER_ROUNDING, -_EPSILON],
+        ]
+      );
+      local_offset_1 = _x_(struct_val(lever_values_struct, "lever_core_size"), -1 / 2);
+      local_offset_2 = _y_(struct_val(lever_values_struct, "lever_core_size"), -1 / 2) + struct_val(lever_values_struct, "lever_offset");
+      structural_color("purple") positive() rotate([0, 0, EJECTOR_LEVER_PRINTING_ANGLE]) difference() {
+              union() {
+                lever_offset_y = -EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_RADIUS / 2;
+                translate([SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE + LEVER_OFFSET, 0, 0])
+                  difference() {
+                    translate([0, lever_offset_y, 0]) cuboid(
+                        _x_(card_size, LEVER_SCALE) + _z_(lever_thickness) + [0, EJECTOR_AXLE_RADIUS, 0], anchor=RIGHT
+                      );
 
-              {
-                translate(local_offset_2) intersection() {
-                    lever_intersection_base(lever_values_struct);
-
-                    translate(-local_offset_1) rotate([0, 0, 90 - EJECTOR_LEVER_PRINTING_ANGLE + 10])
-                        translate(local_offset_1) lever_intersection_base(lever_values_struct);
-                    translate(local_offset_1) rotate([0, 0, -60]) translate(-local_offset_1)
-                          lever_intersection_base(lever_values_struct);
-
-                    translate([0, EJECTOR_AXLE_RADIUS * 2.5, 0])
-                      cuboid([LARGE_VALUE, LARGE_VALUE, LARGE_VALUE], anchor=BACK);
-                    // translate(lever_offset) cuboid(lever_core_size + [ 0, card_size.x* LEVER_SCALE), 0 ],
-                    // anchor = FRONT);``
+                    translate(-_x_(card_size, LEVER_SCALE / 2) + [0, lever_offset_y, 0])
+                      duplicate_and_mirror([0, 1, 0]) duplicate_and_mirror()
+                          translate(_x_(card_size, -LEVER_SCALE / 2) + [0, -EJECTOR_AXLE_RADIUS / 2, 0])
+                            round_bevel_complement(
+                              height=card_size.z + 2 * _EPSILON,
+                              radius=EJECTOR_AXLE_RADIUS / 2, center_z=true
+                            );
                   }
+
+                {
+                  translate(local_offset_2) intersection() {
+                      lever_intersection_base(lever_values_struct);
+
+                      translate(-local_offset_1) rotate([0, 0, 90 - EJECTOR_LEVER_PRINTING_ANGLE + 10])
+                          translate(local_offset_1) lever_intersection_base(lever_values_struct);
+                      translate(local_offset_1) rotate([0, 0, -60]) translate(-local_offset_1)
+                            lever_intersection_base(lever_values_struct);
+
+                      translate([0, EJECTOR_AXLE_RADIUS * 2.5, 0])
+                        cuboid([LARGE_VALUE, LARGE_VALUE, LARGE_VALUE], anchor=BACK);
+                      // translate(lever_offset) cuboid(lever_core_size + [ 0, card_size.x* LEVER_SCALE), 0 ],
+                      // anchor = FRONT);``
+                    }
+                }
               }
+
+              // Torque smoothing curve
+              translate([-(card_size * LEVER_TORQUE_SMOOTHING_CURVE_SCALE).x, -EJECTOR_AXLE_RADIUS, 0])
+                round_bevel_complement(height=card_size.z, radius=card_size.x * 2, center_z=true);
             }
 
-            // Torque smoothing curve
-            translate([-(card_size * LEVER_TORQUE_SMOOTHING_CURVE_SCALE).x, -EJECTOR_AXLE_RADIUS, 0])
-              round_bevel_complement(height=card_size.z, radius=card_size.x * 2, center_z=true);
+      axle_center_to_back_y = (card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER) - ejector_axle_center(card_size).y;
+      structural_color("purple") difference() {
+          union() {
+            cuboid(
+              [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, lever_thickness / 2],
+              anchor=FRONT
+            );
+
+            // translate([0, -1, 0]) rotate([0, 0, EJECTOR_LEVER_PRINTING_ANGLE]) duplicate_and_translate(
+            //       [5.25, 0, 0]
+            //     ) translate([5.25, 0, 0]) rotate([0, 0, -EJECTOR_LEVER_PRINTING_ANGLE])
+            //           cuboid(
+            //             [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, lever_thickness / 2],
+            //             anchor=FRONT
+            //           );
           }
-
-    axle_center_to_back_y = (card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER) - ejector_axle_center(card_size).y;
-    structural_color("purple") difference() {
-        union() {
-          cuboid(
-            [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, lever_thickness / 2],
-            anchor=FRONT
-          );
-
-          // translate([0, -1, 0]) rotate([0, 0, EJECTOR_LEVER_PRINTING_ANGLE]) duplicate_and_translate(
-          //       [5.25, 0, 0]
-          //     ) translate([5.25, 0, 0]) rotate([0, 0, -EJECTOR_LEVER_PRINTING_ANGLE])
-          //           cuboid(
-          //             [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, lever_thickness / 2],
-          //             anchor=FRONT
-          //           );
+          translate([0, axle_center_to_back_y + _EPSILON, 0])
+            cuboid([LARGE_VALUE, LARGE_VALUE, LARGE_VALUE], anchor=FRONT);
         }
-        translate([0, axle_center_to_back_y + _EPSILON, 0])
-          cuboid([LARGE_VALUE, LARGE_VALUE, LARGE_VALUE], anchor=FRONT);
-      }
+    }
   }
 }
 
@@ -1044,7 +1050,7 @@ module ejector_plunger_comp(card_size, is_top, is_bottom, for_negative = false) 
 }
 
 module ejector_comp(card_size, is_top, is_bottom, plungers_only = undef, for_negative = false) {
-  if (!plungers_only && !for_negative) ejector_lever_comp(card_size);
+  if (!plungers_only) ejector_lever_comp(card_size, for_negative);
   ejector_plunger_comp(card_size, is_top, is_bottom, for_negative=for_negative);
 }
 
@@ -1088,7 +1094,7 @@ module block_comp(
       ejector_comp(card_size, is_top, is_bottom, plungers_only=plungers_only, for_negative=for_negative);
 
       if (DEBUG_SHOW_CROSS_SECTION) {
-        negative() translate([0, 0, LARGE_VALUE / 2]) cube(LARGE_VALUE, center=true);
+        if (for_negative) translate([0, 0, LARGE_VALUE / 2]) cube(LARGE_VALUE, center=true);
         // translate(ejector_axle_center(card_size)) negative() translate([ LARGE_VALUE / 2, 0, 0 ])
         //     cube(LARGE_VALUE, center = true);
       }
