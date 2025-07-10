@@ -175,7 +175,7 @@ INCLUDE_VERSION_ENGRAVING = get_parameter("INCLUDE_VERSION_ENGRAVING");
 
 */
 
-include <./vendor/BOSL2/std.scad>
+include <BOSL2/std.scad>
 
 /*
 
@@ -538,7 +538,6 @@ module minkowski_shell() {
     children(0);
   }
 }
-include <./epsilon.scad>
 
 module round_bevel_cylinder(height, radius, center_z = false, epsilon = _EPSILON) {
   translate([radius, radius, center_z ? 0 : height / 2])
