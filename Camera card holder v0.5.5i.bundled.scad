@@ -20,13 +20,16 @@ CASING_OUTER_THICKNESS_Z = 2;
 CASING_BACK_THICKNESS_Y = 1;
 CASING_DISTANCE_BETWEEN_CARDS_Z = 1.5;
 
+// Include tabs (for CFExpress B) on both sides of the slot.
+INCLUDE_TAB_NEGATIVES_ON_BOTH_SIZE = false;
+
 /* [Debug] */
 
 STRUCTURAL_COLORING = false;
 DEBUG_EXCLUDE_CASING = false;
 DEBUG_SHOW_CROSS_SECTION = false;
 INCLUDE_DESIGN_VERSION_ENGRAVING = false;
-VERSION_ENGRAVING_TEXT = "v0.5.5h";
+VERSION_ENGRAVING_TEXT = "v0.5.5i";
 CARD_TYPE_ENGRAVING_CLOSER_TO_FRONT = false;
 
 /* [Hidden] */
@@ -745,6 +748,9 @@ module card_tab_negative_comp(card_size, card_tab_negative_size, for_negative = 
   if (for_negative) {
     // TODO: implement angled sides?
     translate([0, 0, -card_size.z * 1 / 2]) cuboid(card_tab_negative_size, anchor=FRONT + TOP);
+    if (INCLUDE_TAB_NEGATIVES_ON_BOTH_SIZE) {
+      translate([0, 0, card_size.z * 1 / 2]) cuboid(card_tab_negative_size, anchor=FRONT + BOTTOM);
+    }
   }
 }
 
@@ -762,7 +768,7 @@ module card_slot_comp(card_size, card_tab_negative_size, for_negative) {
       );
 
     if (is_list(card_tab_negative_size)) {
-      card_tab_negative_comp(card_size, card_tab_negative_size);
+      card_tab_negative_comp(card_size, card_tab_negative_size, for_negative=for_negative);
     }
   } else {
     positive() %translate([0, STICK_OUT_MARGIN_Z, 0]) cuboid(card_size, anchor=FRONT);
@@ -1046,7 +1052,7 @@ module ejector_plunger_comp(card_size, is_top, is_bottom, for_negative = false) 
               fwd(PLUNGER_PRINTING_OFFSET)
                 translate(plunger_back_rounding_center(card_size))
                   cylinder(h=card_size.z, r=EJECTOR_PLUNGER_WIDTH_X / 2, center=true);
-              #translate(plunger_back_rounding_center(card_size))
+              translate(plunger_back_rounding_center(card_size))
                 rotate([90, 0, 0])
                   cyl(r=PLUNGER_PRINTING_SUPPORT_RADIUS, h=EJECTOR_PLUNGER_WIDTH_X / 2 + PLUNGER_PRINTING_OFFSET * 2, anchor=TOP);
             }
