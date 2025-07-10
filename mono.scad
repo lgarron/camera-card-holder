@@ -1129,14 +1129,13 @@ module block_array(
       : -[0, card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER + CASING_BACK_THICKNESS, 0]
     ) compose() {
         if (!plungers_only && !color_layers_only) {
-          render() carvable() difference() {
-                render() block_array_unrounded_comp(
-                    n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size, include_engraving=include_engraving,
-                    card_type_label=card_type_label, full_design_has_multiple_slots=full_design_has_multiple_slots,
-                    $compose_mode="carvable"
-                  );
+          render() compose() {
+              block_array_unrounded_comp(
+                n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size, include_engraving=include_engraving,
+                card_type_label=card_type_label, full_design_has_multiple_slots=full_design_has_multiple_slots,
+              );
 
-                color("orange") render() minkowski_shell() {
+              color("orange") negative() render() minkowski_shell() {
                       translate([ARRAY_CENTERING_OFFSET_X * (full_design_has_multiple_slots ? 1 : 1 / 2), 0, 0])
                         casing(
                           card_size, BEVEL_ROUNDING, extra_height=(n - 1) * slot_bottom_distance_z(card_size),
@@ -1144,12 +1143,7 @@ module block_array(
                         );
                       cube(BEVEL_ROUNDING, center=true);
                     }
-              }
-          render() negative() block_array_unrounded_comp(
-                n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size, include_engraving=include_engraving,
-                card_type_label=card_type_label, full_design_has_multiple_slots=full_design_has_multiple_slots,
-                $compose_mode="negative"
-              );
+            }
         }
         render() positive() block_array_unrounded_comp(
               n=n, card_size=card_size, card_tab_negative_size=card_tab_negative_size, include_engraving=include_engraving,
