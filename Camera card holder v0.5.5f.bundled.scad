@@ -26,6 +26,7 @@ INCLUDE_DESIGN_VERSION_ENGRAVING = false;
 STRUCTURAL_COLORING = false;
 DEBUG_EXCLUDE_CASING = false;
 DEBUG_SHOW_CROSS_SECTION = false;
+VERSION_TEXT = "v0.5.5f";
 
 /* [Hidden] */
 
@@ -33,9 +34,9 @@ DEBUG_SHOW_CROSS_SECTION = false;
 DUAL_COLOR = false;
 DEEP_SECONDARY_COLOR = false;
 
-// This empty block prevents any following `CONSTANT_CASE` variables from being settable in the customizer.
-// This prevents pathological interactions with persisted customizer values that are meant to be controlled exclusively by `VARIANT`.
-{};
+assert(NUMBER_OF_SLOTS > 0);
+assert(floor(NUMBER_OF_SLOTS) == NUMBER_OF_SLOTS);
+assert(CARD_TYPE == "SD Card" || CARD_TYPE == "CFExpress B");
 
 module structural_color(color_choice) {
   if (STRUCTURAL_COLORING) {
@@ -46,8 +47,6 @@ module structural_color(color_choice) {
 }
 
 VARIANT = "default";
-
-VERSION_TEXT = "v0.5.5e";
 
 VARIANT_DATA = [
   [
@@ -1107,7 +1106,8 @@ module block_comp(
 LAYER_HEIGHT = 0.2;
 COLORING_DEPTH = VARIANT_DEEP_SECONDARY_COLOR ? LARGE_VALUE / 2 : 6 * LAYER_HEIGHT;
 
-module block_array_unrounded_comp(
+module block_array_unrounded_comp_inner_loop(
+  i,
   n,
   card_size,
   card_type_label,
@@ -1119,15 +1119,15 @@ module block_array_unrounded_comp(
   color_layers_only = false,
   for_negative = false,
 ) {
-  for (i = [0:n - 1]) {
-    is_top = i == n - 1;
-    is_bottom = i == 0;
-    translate(
-      [
-        (use_tiling_offset && (i % 2 == 1)) ? slot_width_distance_x(card_size) / 4 : 0,
-        0,
-        i * (slot_bottom_distance_z(card_size)),
-      ]
+  translation = [
+    (use_tiling_offset && (i % 2 == 1)) ? slot_width_distance_x(card_size) / 4 : 0,
+    0,
+    i * (slot_bottom_distance_z(card_size)),
+  ];
+  is_bottom = i == 0;
+  is_top = i == n - 1;
+  render() translate(
+      translation
     ) {
       if (!color_layers_only) {
         if (!plungers_only || plungers_only == "all" || (plungers_only == "even" && i % 2 == 0)) {
@@ -1145,6 +1145,91 @@ module block_array_unrounded_comp(
             cuboid([LARGE_VALUE, LARGE_VALUE, slot_bottom_distance_z(card_size) + extra], anchor=BACK);
       }
     }
+}
+
+module block_array_unrounded_comp(
+  n,
+  card_size,
+  card_type_label,
+  card_tab_negative_size,
+  include_engraving = true,
+  use_tiling_offset = false,
+  full_design_has_multiple_slots,
+  plungers_only = undef,
+  color_layers_only = false,
+  for_negative = false,
+) {
+  num_copies_of_idx_1 = max(0, floor((n - 1) / 2));
+  num_copies_of_idx_2 = max(0, floor((n - 2) / 2));
+
+  translation = [
+    0,
+    0,
+    2 * slot_bottom_distance_z(card_size),
+  ];
+
+  render() {
+    if (n > 0)
+      block_array_unrounded_comp_inner_loop(
+        i=0,
+        n=n,
+        card_size=card_size,
+        card_type_label=card_type_label,
+        card_tab_negative_size=card_tab_negative_size,
+        include_engraving=include_engraving,
+        use_tiling_offset=use_tiling_offset,
+        full_design_has_multiple_slots=full_design_has_multiple_slots,
+        plungers_only=plungers_only,
+        color_layers_only=color_layers_only,
+        for_negative=for_negative,
+      );
+
+    if (num_copies_of_idx_1 > 0)
+      duplicate_and_translate(translation=translation, number_of_total_copies=num_copies_of_idx_1)
+        block_array_unrounded_comp_inner_loop(
+          i=1,
+          n=n,
+          card_size=card_size,
+          card_type_label=card_type_label,
+          card_tab_negative_size=card_tab_negative_size,
+          include_engraving=include_engraving,
+          use_tiling_offset=use_tiling_offset,
+          full_design_has_multiple_slots=full_design_has_multiple_slots,
+          plungers_only=plungers_only,
+          color_layers_only=color_layers_only,
+          for_negative=for_negative,
+        );
+
+    if (num_copies_of_idx_2 > 0)
+      duplicate_and_translate(translation=translation, number_of_total_copies=num_copies_of_idx_2)
+        block_array_unrounded_comp_inner_loop(
+          i=2,
+          n=n,
+          card_size=card_size,
+          card_type_label=card_type_label,
+          card_tab_negative_size=card_tab_negative_size,
+          include_engraving=include_engraving,
+          use_tiling_offset=use_tiling_offset,
+          full_design_has_multiple_slots=full_design_has_multiple_slots,
+          plungers_only=plungers_only,
+          color_layers_only=color_layers_only,
+          for_negative=for_negative,
+        );
+
+    if (n > 1)
+      block_array_unrounded_comp_inner_loop(
+        i=n - 1,
+        n=n,
+        card_size=card_size,
+        card_type_label=card_type_label,
+        card_tab_negative_size=card_tab_negative_size,
+        include_engraving=include_engraving,
+        use_tiling_offset=use_tiling_offset,
+        full_design_has_multiple_slots=full_design_has_multiple_slots,
+        plungers_only=plungers_only,
+        color_layers_only=color_layers_only,
+        for_negative=for_negative,
+      );
   }
 }
 
