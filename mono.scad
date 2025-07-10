@@ -10,10 +10,12 @@ CARD_TYPE = "SD Card"; // ["SD Card", "CFExpress B"]
 
 NUMBER_OF_SLOTS = 4;
 
-DEBUG_EXCLUDE_CASING = false;
-
 INCLUDE_VERSION_ENGRAVING = false;
 INCLUDE_CARD_TYPE_ENGRAVING = false;
+
+/* [Debug] */
+
+DEBUG_EXCLUDE_CASING = false;
 
 /* [Hidden] */
 
