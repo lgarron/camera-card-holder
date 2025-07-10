@@ -1,6 +1,6 @@
 // Stacked camera card holder
 // Lucas Garron
-// v0.5.5 — manually bundled
+// v0.5.5c — manually bundled
 // License: Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
 //
 // This file has been manually bundled and heavily modified to work around incompatibilities with Bambu's rendering vs. OpenSCAD.
@@ -13,28 +13,46 @@ NUMBER_OF_SLOTS = 4;
 
 INCLUDE_CARD_TYPE_ENGRAVING = false;
 
+/* [Design parameters] */
+
+CASING_OUTER_THICKNESS_X = 3.5;
+CASING_OUTER_THICKNESS_Z = 2;
+CASING_BACK_THICKNESS_Y = 1;
+CASING_DISTANCE_BETWEEN_CARDS_Z = 1.5;
+
 /* [Debug] */
 
 INCLUDE_DESIGN_VERSION_ENGRAVING = false;
+STRUCTURAL_COLORING = false;
 DEBUG_EXCLUDE_CASING = false;
 
 /* [Hidden] */
+
+// Incompatible with Bambu rendering.
+DUAL_COLOR = false;
+DEEP_SECONDARY_COLOR = false;
 
 // This empty block prevents any following `CONSTANT_CASE` variables from being settable in the customizer.
 // This prevents pathological interactions with persisted customizer values that are meant to be controlled exclusively by `VARIANT`.
 {};
 
+module structural_color(color) {
+  color(STRUCTURAL_COLORING ? color : "silver") {
+    children();
+  }
+}
+
 VARIANT = "default";
 
-VERSION_TEXT = "v0.5.5b";
+VERSION_TEXT = "v0.5.5c";
 
 VARIANT_DATA = [
   [
     "default",
     [
       [
-        ["DUAL_COLOR", false],
-        ["DEEP_SECONDARY_COLOR", false],
+        ["VARIANT_DUAL_COLOR", DUAL_COLOR],
+        ["VARIANT_DEEP_SECONDARY_COLOR", DEEP_SECONDARY_COLOR],
         ["VARIANT_NUMBER_OF_SLOTS", NUMBER_OF_SLOTS],
         ["CF_EXPRESS_B", CARD_TYPE == "CFExpress B"],
         ["VARIANT_INCLUDE_DESIGN_VERSION_ENGRAVING", INCLUDE_DESIGN_VERSION_ENGRAVING],
@@ -45,7 +63,7 @@ VARIANT_DATA = [
     "dual-color",
     [
       [
-        ["DUAL_COLOR", true],
+        ["VARIANT_DUAL_COLOR", true],
       ],
     ],
   ],
@@ -53,7 +71,7 @@ VARIANT_DATA = [
     "deep-secondary-color",
     [
       [
-        ["DEEP_SECONDARY_COLOR", true],
+        ["VARIANT_DEEP_SECONDARY_COLOR", true],
       ],
     ],
   ],
@@ -239,8 +257,8 @@ function get_parameter(parameter_name) =
   ) let (value = is_undef(maybe_value) ? __variants__maybe_get_parameter_for_variant(parameter_name, "default", []) : maybe_value) assert(!is_undef(value), str("Unable to get parameter: ", parameter_name)) // Technically we're doing unnecessary string concatentation in the "happy" path, but this should be cheap enough.
   value;
 
-DUAL_COLOR = get_parameter("DUAL_COLOR");
-DEEP_SECONDARY_COLOR = get_parameter("DEEP_SECONDARY_COLOR");
+VARIANT_DUAL_COLOR = get_parameter("VARIANT_DUAL_COLOR");
+VARIANT_DEEP_SECONDARY_COLOR = get_parameter("VARIANT_DEEP_SECONDARY_COLOR");
 VARIANT_NUMBER_OF_SLOTS = get_parameter("VARIANT_NUMBER_OF_SLOTS");
 CF_EXPRESS_B = get_parameter("CF_EXPRESS_B");
 VARIANT_INCLUDE_DESIGN_VERSION_ENGRAVING = get_parameter("VARIANT_INCLUDE_DESIGN_VERSION_ENGRAVING");
@@ -600,11 +618,6 @@ SD_CARD_ADJUSTMENTS = [-0.25, 0.5, 0];
 
 CLEARANCE = 0.15;
 
-CASING_OUTER_THICKNESS_X = 3.5;
-CASING_BACK_THICKNESS = 1;
-CASING_INNER_THICKNESS_Z = 1.5;
-CASING_OUTER_THICKNESS_Z = 2;
-
 FUNNEL_DEPTH = 2.5;
 FUNNEL_DEFAULT_MARGIN_Z = 1;
 SPRING_WIDTH = 2;
@@ -622,9 +635,9 @@ TOTAL_EXTRA_WIDTH_FOR_EJECTOR = WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_W
 
 EXTRA_CLEARANCE_FOR_H2D = 0.1;
 
-function slot_bottom_distance_z(card_size) = card_size.z + CASING_INNER_THICKNESS_Z + CLEARANCE;
+function slot_bottom_distance_z(card_size) = card_size.z + CASING_DISTANCE_BETWEEN_CARDS_Z + CLEARANCE;
 function slot_width_distance_x(card_size) =
-  card_size.x + 2 * SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X + CASING_INNER_THICKNESS_Z;
+  card_size.x + 2 * SPRING_WIDTH + WALL_WIDTH_FOR_EJECTOR_CHUTE + EJECTOR_PLUNGER_WIDTH_X + CASING_DISTANCE_BETWEEN_CARDS_Z;
 
 module casing(card_size, include_bevel_rounding, extra_height = 0, full_design_has_multiple_slots = false) {
   translate([full_design_has_multiple_slots ? 0 : TOTAL_EXTRA_WIDTH_FOR_EJECTOR / 2, 0, extra_height / 2])
@@ -633,7 +646,7 @@ module casing(card_size, include_bevel_rounding, extra_height = 0, full_design_h
       cuboid(
         card_size + [
           CASING_OUTER_THICKNESS_X * 2 - bevel_rounding_value + TOTAL_EXTRA_WIDTH_FOR_EJECTOR * (full_design_has_multiple_slots ? 2 : 1),
-          CASING_BACK_THICKNESS + STICK_OUT_MARGIN_Z - bevel_rounding_value + EXTRA_BACK_DEPTH_FOR_LEVER,
+          CASING_BACK_THICKNESS_Y + STICK_OUT_MARGIN_Z - bevel_rounding_value + EXTRA_BACK_DEPTH_FOR_LEVER,
           2 * CASING_OUTER_THICKNESS_Z - bevel_rounding_value + extra_height,
         ],
         anchor=FRONT
@@ -703,7 +716,7 @@ module spring_shell(card_size, compression) {
 }
 
 module spring_pair(card_size, compression) {
-  positive() color("orange") duplicate_and_mirror() translate(
+  positive() structural_color("orange") duplicate_and_mirror() translate(
           [card_size.x * 1 / 2 + SPRING_WIDTH, spring_depth(card_size) / 2, card_size.z * -1 / 2 + SPRING_CLEARANCE]
         )
           linear_extrude(card_size.z - 2 * SPRING_CLEARANCE) difference() {
@@ -755,19 +768,19 @@ EJECTOR_LEVER_OFFSET_ANGLED_Y = EJECTOR_AXLE_RADIUS;
 EJECTOR_LEVER_ROUNDING = EJECTOR_AXLE_RADIUS / 2;
 EJECTOR_LEVER_PRINTING_ANGLE = PLUNGER_PUSHED_IN ? 40 : 0;
 
-EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT = CASING_INNER_THICKNESS_Z * 1 / 2;
+EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT = CASING_DISTANCE_BETWEEN_CARDS_Z * 1 / 2;
 
 AXLE_INSET = 0.7;
 AXLE_INSET_CLEARANCE = 0.6;
 
 module ejector_axle_hole_snappable_print_supports(card_size) {
-  duplicate_and_mirror([0, 0, 1]) translate([0, 0, card_size.z / 2 + CASING_INNER_THICKNESS_Z / 2 - AXLE_INSET / 2])
+  duplicate_and_mirror([0, 0, 1]) translate([0, 0, card_size.z / 2 + CASING_DISTANCE_BETWEEN_CARDS_Z / 2 - AXLE_INSET / 2])
       cuboid(
         [
           EJECTOR_AXLE_RADIUS * 1 / 4,
           (EJECTOR_AXLE_RADIUS * 2 + CLEARANCE + EJECTOR_AXLE_CLEARANCE * 2 + 2 * _EPSILON) / 2,
           EJECTOR_AXLE_HOLE_SNAP_CONNECTOR_HEIGHT,
-          // card_size.z + 2 * CASING_INNER_THICKNESS_Z + 2 * _EPSILON + 2 *
+          // card_size.z + 2 * CASING_DISTANCE_BETWEEN_CARDS_Z + 2 * _EPSILON + 2 *
           // _EPSILON
         ],
         anchor=FRONT
@@ -784,7 +797,7 @@ module untranslated_axle_hole(card_size) {
   union() {
 
     cylinder(
-      h=card_size.z + 2 * CASING_INNER_THICKNESS_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
+      h=card_size.z + 2 * CASING_DISTANCE_BETWEEN_CARDS_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
       r=EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_CLEARANCE, center=true
     );
 
@@ -793,7 +806,7 @@ module untranslated_axle_hole(card_size) {
         [
           EJECTOR_AXLE_RADIUS * 2 * 2 / 3,
           EJECTOR_AXLE_RADIUS + CLEARANCE + EJECTOR_AXLE_CLEARANCE,
-          card_size.z + 2 * CASING_INNER_THICKNESS_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
+          card_size.z + 2 * CASING_DISTANCE_BETWEEN_CARDS_Z + 2 * _EPSILON - 2 * AXLE_INSET_CLEARANCE,
         ],
         anchor=FRONT
       );
@@ -837,7 +850,7 @@ module ejector_lever_comp(card_size) {
 
     // Axle
     positive()
-      cylinder(h=card_size.z + 2 * CASING_INNER_THICKNESS_Z - 2 * AXLE_INSET, r=EJECTOR_AXLE_RADIUS, center=true);
+      cylinder(h=card_size.z + 2 * CASING_DISTANCE_BETWEEN_CARDS_Z - 2 * AXLE_INSET, r=EJECTOR_AXLE_RADIUS, center=true);
 
     // Lever
     lever_values_struct = struct_set(
@@ -859,7 +872,7 @@ module ejector_lever_comp(card_size) {
     );
     local_offset_1 = _x_(struct_val(lever_values_struct, "lever_core_size"), -1 / 2);
     local_offset_2 = _y_(struct_val(lever_values_struct, "lever_core_size"), -1 / 2) + struct_val(lever_values_struct, "lever_offset");
-    color("purple") positive() rotate([0, 0, EJECTOR_LEVER_PRINTING_ANGLE]) difference() {
+    structural_color("purple") positive() rotate([0, 0, EJECTOR_LEVER_PRINTING_ANGLE]) difference() {
             union() {
               lever_offset_y = -EJECTOR_AXLE_RADIUS + EJECTOR_AXLE_RADIUS / 2;
               translate([SPRING_WIDTH + TOTAL_EXTRA_WIDTH_FOR_EJECTOR - CLEARANCE + LEVER_OFFSET, 0, 0])
@@ -900,7 +913,7 @@ module ejector_lever_comp(card_size) {
           }
 
     axle_center_to_back_y = (card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER) - ejector_axle_center(card_size).y;
-    color("purple") difference() {
+    structural_color("purple") difference() {
         union() {
           cuboid(
             [LEVER_PRINT_SUPPORT_WIDTH, axle_center_to_back_y + _EPSILON, lever_thickness / 2],
@@ -1017,7 +1030,7 @@ module ejector_plunger_comp(card_size, is_top, is_bottom, for_negative = false) 
       }
   } else {
     positive() render() translate(PLUNGER_PUSHED_IN ? [0, 0, 0] : [0, -plunger_travel_distance_y(card_size), 0])
-          color("green") union() {
+          structural_color("green") union() {
               ejector_plunger(card_size, is_top, is_bottom);
 
               fwd(PLUNGER_PRINTING_OFFSET)
@@ -1070,7 +1083,7 @@ module block_comp(
         }
 
         card_slot_comp(card_size, card_tab_negative_size, for_negative=for_negative);
-        color("blue") springs_comp(card_size);
+        structural_color("blue") springs_comp(card_size);
       }
       ejector_comp(card_size, is_top, is_bottom, plungers_only=plungers_only, for_negative=for_negative);
 
@@ -1086,7 +1099,7 @@ module block_comp(
 }
 
 LAYER_HEIGHT = 0.2;
-COLORING_DEPTH = DEEP_SECONDARY_COLOR ? LARGE_VALUE / 2 : 6 * LAYER_HEIGHT;
+COLORING_DEPTH = VARIANT_DEEP_SECONDARY_COLOR ? LARGE_VALUE / 2 : 6 * LAYER_HEIGHT;
 
 module block_array_unrounded_comp(
   n,
@@ -1143,7 +1156,7 @@ module block_array(
   full_design_has_multiple_slots = n > 1;
   render() translate(
       DEBUG ? [0, 0, 0]
-      : -[0, card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER + CASING_BACK_THICKNESS, 0]
+      : -[0, card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER + CASING_BACK_THICKNESS_Y, 0]
     ) compose() {
         if (!plungers_only && !color_layers_only) {
           difference() {
@@ -1161,7 +1174,7 @@ module block_array(
                   for_negative=false
                 );
 
-              negative() color("silver") minkowski_shell() {
+              negative() structural_color("silver") minkowski_shell() {
                     translate([ARRAY_CENTERING_OFFSET_X * (full_design_has_multiple_slots ? 1 : 1 / 2), 0, 0])
                       casing(
                         card_size, BEVEL_ROUNDING, extra_height=(n - 1) * slot_bottom_distance_z(card_size),
@@ -1243,7 +1256,7 @@ module block_array_secondary_color_mask(
       full_design_has_multiple_slots=full_design_has_multiple_slots,
       plungers_only="even"
     );
-    translate([0, -(card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER + CASING_BACK_THICKNESS) + COLORING_DEPTH, 0])
+    translate([0, -(card_size.y + EXTRA_BACK_DEPTH_FOR_LEVER + CASING_BACK_THICKNESS_Y) + COLORING_DEPTH, 0])
       cuboid(LARGE_VALUE, anchor=BACK);
   }
 }
@@ -1341,9 +1354,9 @@ module parts(primary_color = under) {
   }
 }
 
-if (DUAL_COLOR) {
-  group("primary_color") color("blue") parts(primary_color=true);
-  group("secondary_color") color("red") parts(primary_color=false);
+if (VARIANT_DUAL_COLOR) {
+  group("primary_color") structural_color("blue") parts(primary_color=true);
+  group("secondary_color") structural_color("red") parts(primary_color=false);
 } else {
   group("single_color") parts(primary_color=undef);
 }
