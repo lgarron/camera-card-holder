@@ -4,17 +4,18 @@
 // License: Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
 //
 // This file has been manually bundled and heavily modified to work around incompatibilities with Bambu's rendering vs. OpenSCAD.
+// Therefore, it contains some extremely hacky and unmaintainable workarounds.
 // For the original source, see: https://github.com/lgarron/camera-card-holder
 
 CARD_TYPE = "SD Card"; // ["SD Card", "CFExpress B"]
 
 NUMBER_OF_SLOTS = 4;
 
-INCLUDE_VERSION_ENGRAVING = false;
 INCLUDE_CARD_TYPE_ENGRAVING = false;
 
 /* [Debug] */
 
+INCLUDE_DESIGN_VERSION_ENGRAVING = false;
 DEBUG_EXCLUDE_CASING = false;
 
 /* [Hidden] */
@@ -25,7 +26,7 @@ DEBUG_EXCLUDE_CASING = false;
 
 VARIANT = "default";
 
-VERSION_TEXT = "v0.5.5";
+VERSION_TEXT = "v0.5.5b";
 
 VARIANT_DATA = [
   [
@@ -35,8 +36,8 @@ VARIANT_DATA = [
         ["DUAL_COLOR", false],
         ["DEEP_SECONDARY_COLOR", false],
         ["VARIANT_NUMBER_OF_SLOTS", NUMBER_OF_SLOTS],
-        ["CF_EXPRESS_B", CARD_TYPE == "CFEXpress B"],
-        ["VARIANT_INCLUDE_VERSION_ENGRAVING", INCLUDE_VERSION_ENGRAVING],
+        ["CF_EXPRESS_B", CARD_TYPE == "CFExpress B"],
+        ["VARIANT_INCLUDE_DESIGN_VERSION_ENGRAVING", INCLUDE_DESIGN_VERSION_ENGRAVING],
       ],
     ],
   ],
@@ -92,7 +93,7 @@ VARIANT_DATA = [
     "unengraved",
     [
       [
-        ["VARIANT_INCLUDE_VERSION_ENGRAVING", false],
+        ["VARIANT_INCLUDE_DESIGN_VERSION_ENGRAVING", false],
       ],
     ],
   ],
@@ -137,7 +138,7 @@ VARIANT_DATA = [
       [
         ["TOTAL_HEIGHT", 5],
         ["TRIANGLE_EDGE_LENGTH", 25],
-        ["INCLUDE_VERSION_ENGRAVING", true],
+        ["INCLUDE_DESIGN_VERSION_ENGRAVING", true],
       ],
     ],
   ],
@@ -145,7 +146,7 @@ VARIANT_DATA = [
     "no-version",
     [
       [
-        ["INCLUDE_VERSION_ENGRAVING", false],
+        ["INCLUDE_DESIGN_VERSION_ENGRAVING", false],
       ],
     ],
   ],
@@ -174,7 +175,7 @@ include <./node_modules/scad/variants.scad>
 
 TOTAL_HEIGHT = get_parameter("TOTAL_HEIGHT");
 TRIANGLE_EDGE_LENGTH = get_parameter("TRIANGLE_EDGE_LENGTH");
-INCLUDE_VERSION_ENGRAVING = get_parameter("INCLUDE_VERSION_ENGRAVING");
+INCLUDE_DESIGN_VERSION_ENGRAVING = get_parameter("INCLUDE_DESIGN_VERSION_ENGRAVING");
 
 */
 
@@ -242,7 +243,7 @@ DUAL_COLOR = get_parameter("DUAL_COLOR");
 DEEP_SECONDARY_COLOR = get_parameter("DEEP_SECONDARY_COLOR");
 VARIANT_NUMBER_OF_SLOTS = get_parameter("VARIANT_NUMBER_OF_SLOTS");
 CF_EXPRESS_B = get_parameter("CF_EXPRESS_B");
-VARIANT_INCLUDE_VERSION_ENGRAVING = get_parameter("VARIANT_INCLUDE_VERSION_ENGRAVING");
+VARIANT_INCLUDE_DESIGN_VERSION_ENGRAVING = get_parameter("VARIANT_INCLUDE_DESIGN_VERSION_ENGRAVING");
 
 DEBUG = false;
 DEBUG_SHOW_CROSS_SECTION = DEBUG;
@@ -659,14 +660,15 @@ module funnel_comp(card_size) {
     }
 }
 
-module engraving_comp(card_size, card_type_label) {
-  negative() render() union() {
-        if (INCLUDE_VERSION_ENGRAVING) {
+module engraving_comp(card_size, card_type_label, for_negative = false) {
+  if (for_negative)
+    render() union() {
+        if (INCLUDE_DESIGN_VERSION_ENGRAVING) {
           // Version engraving
           translate(
             [
               0,
-              (CASING_OUTER_THICKNESS_X + card_size.y + STICK_OUT_MARGIN_Z) / 2,
+              (CASING_OUTER_THICKNESS_X + card_size.y * 7 / 4 + STICK_OUT_MARGIN_Z) / 2,
               card_size.z * 1 / 2 + CASING_OUTER_THICKNESS_Z - TEXT_ENGRAVING_DEPTH,
             ]
           ) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
@@ -678,11 +680,11 @@ module engraving_comp(card_size, card_type_label) {
           translate(
             [
               0,
-              (CASING_OUTER_THICKNESS_X + card_size.y + STICK_OUT_MARGIN_Z) / 2 - 7,
+              (CASING_OUTER_THICKNESS_X + card_size.y * 3 / 2 + STICK_OUT_MARGIN_Z) / 2 - 7,
               card_size.z * 1 / 2 + CASING_OUTER_THICKNESS_Z - TEXT_ENGRAVING_DEPTH,
             ]
           ) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
-              text(card_type_label, size=3, font="Ubuntu:style=bold", halign="center", valign="center");
+              text(CF_EXPRESS_B ? "CFExpress B" : "SD Cards", size=CF_EXPRESS_B ? 5.25 : 6, font="Ubuntu:style=bold", halign="center", valign="center");
         }
       }
 }
@@ -720,7 +722,7 @@ module springs_comp(card_size) {
 }
 
 // TODO don't hardcode this for CFExpress
-module card_tab_negative_comp(card_size, card_tab_negative_size, for_negative = for_negative) {
+module card_tab_negative_comp(card_size, card_tab_negative_size, for_negative = false) {
   if (for_negative) {
     // TODO: implement angled sides?
     translate([0, 0, -card_size.z * 1 / 2]) cuboid(card_tab_negative_size, anchor=FRONT + TOP);
@@ -1080,9 +1082,7 @@ module block_comp(
     }
   }
 
-  if (engrave) {
-    engraving_comp(card_size, card_type_label);
-  }
+  engraving_comp(card_size, card_type_label, for_negative=for_negative);
 }
 
 LAYER_HEIGHT = 0.2;
@@ -1161,7 +1161,7 @@ module block_array(
                   for_negative=false
                 );
 
-              negative() color("orange") minkowski_shell() {
+              negative() color("silver") minkowski_shell() {
                     translate([ARRAY_CENTERING_OFFSET_X * (full_design_has_multiple_slots ? 1 : 1 / 2), 0, 0])
                       casing(
                         card_size, BEVEL_ROUNDING, extra_height=(n - 1) * slot_bottom_distance_z(card_size),
@@ -1332,11 +1332,11 @@ module parts(primary_color = under) {
   // if (!DEBUG)
   {
     if (CF_EXPRESS_B) {
-      translate(-tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
-            block_array_color(VARIANT_NUMBER_OF_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE, primary_color=primary_color, include_engraving=VARIANT_INCLUDE_VERSION_ENGRAVING);
+      rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
+          block_array_color(VARIANT_NUMBER_OF_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE, primary_color=primary_color, include_engraving=true);
     } else {
-      translate(tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
-            block_array_color(VARIANT_NUMBER_OF_SLOTS, SD_CARD_SIZE, "SD Cards", false, primary_color=primary_color, card_size_negative_adjust=SD_CARD_ADJUSTMENTS, include_engraving=VARIANT_INCLUDE_VERSION_ENGRAVING);
+      rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
+          block_array_color(VARIANT_NUMBER_OF_SLOTS, SD_CARD_SIZE, "SD Cards", false, primary_color=primary_color, card_size_negative_adjust=SD_CARD_ADJUSTMENTS, include_engraving=true);
     }
   }
 }
