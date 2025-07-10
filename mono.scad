@@ -6,21 +6,22 @@
 // This file has been manually bundled and heavily modified to work around incompatibilities with Bambu's rendering vs. OpenSCAD.
 // For the original source, see: https://github.com/lgarron/camera-card-holder
 
-VARIANT = "default"; // ["default", "dual-color", "dual-color.deep-secondary-color", "CFExpress-B", "6-slots", "8-slots", "CFExpress-B.8-slots", "8-slots.dual-color.deep-secondary-color", "CFExpress-B.8-slots.dual-color.deep-secondary-color", "unengraved"]
+CARD_TYPE = "SD Card"; // ["SD Card", "CFExpress B"]
 
-// Overridden by the `unengraved` variant.
-INCLUDE_ENGRAVING = true;
-
-// Overridden by variants that explicitly set the number of slots.
 NUMBER_OF_SLOTS = 4;
 
 DEBUG_EXCLUDE_CASING = false;
+
+INCLUDE_VERSION_ENGRAVING = false;
+INCLUDE_CARD_TYPE_ENGRAVING = false;
 
 /* [Hidden] */
 
 // This empty block prevents any following `CONSTANT_CASE` variables from being settable in the customizer.
 // This prevents pathological interactions with persisted customizer values that are meant to be controlled exclusively by `VARIANT`.
 {};
+
+VARIANT = "default";
 
 VERSION_TEXT = "v0.5.5";
 
@@ -32,8 +33,8 @@ VARIANT_DATA = [
         ["DUAL_COLOR", false],
         ["DEEP_SECONDARY_COLOR", false],
         ["VARIANT_NUMBER_OF_SLOTS", NUMBER_OF_SLOTS],
-        ["CF_EXPRESS_B", false],
-        ["VARIANT_INCLUDE_ENGRAVING", INCLUDE_ENGRAVING],
+        ["CF_EXPRESS_B", CARD_TYPE == "CFEXpress B"],
+        ["VARIANT_INCLUDE_VERSION_ENGRAVING", INCLUDE_VERSION_ENGRAVING],
       ],
     ],
   ],
@@ -89,7 +90,7 @@ VARIANT_DATA = [
     "unengraved",
     [
       [
-        ["VARIANT_INCLUDE_ENGRAVING", false],
+        ["VARIANT_INCLUDE_VERSION_ENGRAVING", false],
       ],
     ],
   ],
@@ -239,7 +240,7 @@ DUAL_COLOR = get_parameter("DUAL_COLOR");
 DEEP_SECONDARY_COLOR = get_parameter("DEEP_SECONDARY_COLOR");
 VARIANT_NUMBER_OF_SLOTS = get_parameter("VARIANT_NUMBER_OF_SLOTS");
 CF_EXPRESS_B = get_parameter("CF_EXPRESS_B");
-VARIANT_INCLUDE_ENGRAVING = get_parameter("VARIANT_INCLUDE_ENGRAVING");
+VARIANT_INCLUDE_VERSION_ENGRAVING = get_parameter("VARIANT_INCLUDE_VERSION_ENGRAVING");
 
 DEBUG = false;
 DEBUG_SHOW_CROSS_SECTION = DEBUG;
@@ -658,25 +659,29 @@ module funnel_comp(card_size) {
 
 module engraving_comp(card_size, card_type_label) {
   negative() render() union() {
-        // Version engraving
-        translate(
-          [
-            0,
-            (CASING_OUTER_THICKNESS_X + card_size.y + STICK_OUT_MARGIN_Z) / 2,
-            card_size.z * 1 / 2 + CASING_OUTER_THICKNESS_Z - TEXT_ENGRAVING_DEPTH,
-          ]
-        ) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
-            text(VERSION_TEXT, size=5, font="Ubuntu:style=bold", halign="center", valign="center");
+        if (INCLUDE_VERSION_ENGRAVING) {
+          // Version engraving
+          translate(
+            [
+              0,
+              (CASING_OUTER_THICKNESS_X + card_size.y + STICK_OUT_MARGIN_Z) / 2,
+              card_size.z * 1 / 2 + CASING_OUTER_THICKNESS_Z - TEXT_ENGRAVING_DEPTH,
+            ]
+          ) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
+              text(VERSION_TEXT, size=5, font="Ubuntu:style=bold", halign="center", valign="center");
+        }
 
-        // Version engraving
-        translate(
-          [
-            0,
-            (CASING_OUTER_THICKNESS_X + card_size.y + STICK_OUT_MARGIN_Z) / 2 - 7,
-            card_size.z * 1 / 2 + CASING_OUTER_THICKNESS_Z - TEXT_ENGRAVING_DEPTH,
-          ]
-        ) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
-            text(card_type_label, size=3, font="Ubuntu:style=bold", halign="center", valign="center");
+        if (INCLUDE_CARD_TYPE_ENGRAVING) {
+          // Card type engraving
+          translate(
+            [
+              0,
+              (CASING_OUTER_THICKNESS_X + card_size.y + STICK_OUT_MARGIN_Z) / 2 - 7,
+              card_size.z * 1 / 2 + CASING_OUTER_THICKNESS_Z - TEXT_ENGRAVING_DEPTH,
+            ]
+          ) linear_extrude(TEXT_ENGRAVING_DEPTH + _EPSILON)
+              text(card_type_label, size=3, font="Ubuntu:style=bold", halign="center", valign="center");
+        }
       }
 }
 
@@ -997,7 +1002,6 @@ function plunger_travel_distance_y(card_size) =
 // TODO: With current dimensions, the lever doesn't extend *quite* far enough in the `x` direction to perfectly contact
 // the plunger.
 module ejector_plunger_comp(card_size, is_top, is_bottom, for_negative = false) {
-  echo(for_negative=for_negative);
   if (for_negative) {
     render() minkowski() {
         render() ejector_plunger(card_size, is_top, is_bottom);
@@ -1327,10 +1331,10 @@ module parts(primary_color = under) {
   {
     if (CF_EXPRESS_B) {
       translate(-tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
-            block_array_color(VARIANT_NUMBER_OF_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE, primary_color=primary_color, include_engraving=VARIANT_INCLUDE_ENGRAVING);
+            block_array_color(VARIANT_NUMBER_OF_SLOTS, CFEXPRESS_B_CARD_SIZE, "CFexpress B", CFEXPRESS_CARD_TAB_NEGATIVE_SIZE, primary_color=primary_color, include_engraving=VARIANT_INCLUDE_VERSION_ENGRAVING);
     } else {
       translate(tx - ty) rotate([ROTATE_FOR_PRINTING ? -90 : 0, 0, ROTATE_FOR_PRINTING ? 180 : 0]) render()
-            block_array_color(VARIANT_NUMBER_OF_SLOTS, SD_CARD_SIZE, "SD Cards", false, primary_color=primary_color, card_size_negative_adjust=SD_CARD_ADJUSTMENTS, include_engraving=VARIANT_INCLUDE_ENGRAVING);
+            block_array_color(VARIANT_NUMBER_OF_SLOTS, SD_CARD_SIZE, "SD Cards", false, primary_color=primary_color, card_size_negative_adjust=SD_CARD_ADJUSTMENTS, include_engraving=VARIANT_INCLUDE_VERSION_ENGRAVING);
     }
   }
 }
