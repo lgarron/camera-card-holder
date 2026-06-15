@@ -50,7 +50,7 @@ module structural_color(color_choice) {
   }
 }
 
-VARIANT = "default";
+VARIANT = "default"; // ["default"]
 
 VARIANT_DATA = [
   [
@@ -149,7 +149,7 @@ VARIANT_DATA = [
 //
 // Example usage:
 
-VARIANT = "default"; // ["default", "no-version", "mini", "mini.normal-height"]
+// VARIANT = "default"; // ["default", "no-version", "mini", "mini.normal-height"]
 
 // This empty block prevents any following `CONSTANT_CASE` variables from being settable in the customizer.
 // This prevents pathological interactions with persisted customizer values that are meant to be controlled exclusively by `VARIANT`.
