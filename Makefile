@@ -11,7 +11,7 @@ setup: bun-install
 
 .PHONY: bun-install
 bun-install:
-	bun install --no-save
+	bun install --frozen-lockfile
 
 .PHONY: publish
 publish: build-for-publish
