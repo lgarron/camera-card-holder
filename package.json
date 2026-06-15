@@ -10,6 +10,6 @@
 		"./dist/"
 	],
 	"devDependencies": {
-		"@cubing/dev-config": "^0.3.6"
+		"@cubing/dev-config": ">=0.10.1"
 	}
 }
